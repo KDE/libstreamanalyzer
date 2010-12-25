@@ -90,6 +90,7 @@ else(STRIGI_VERSION_STRING)
 endif(STRIGI_VERSION_STRING)
 find_package(Threads REQUIRED)
 find_package(LibXml2 REQUIRED)
+find_package(Iconv REQUIRED)
 
 find_optional_dep(CLucene ENABLE_CLUCENE CLucene_FOUND "CLucene backend")
 find_optional_dep(CLucene1 ENABLE_CLUCENE_NG CLUCENE1_FOUND "CLucene Version 1+ backend")

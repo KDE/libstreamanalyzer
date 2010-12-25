@@ -34,7 +34,7 @@ set(streamanalyzer_SRCS
 	endanalyzers/id3endanalyzer.cpp
 	endanalyzers/lzmaendanalyzer.cpp
 	endanalyzers/mailendanalyzer.cpp
-	endanalyzers/mpegendanalyzer.cpp   
+	endanalyzers/mpegendanalyzer.cpp
 	endanalyzers/odfendanalyzer.cpp
 	endanalyzers/oleendanalyzer.cpp
 	endanalyzers/pdfendanalyzer.cpp
@@ -70,7 +70,7 @@ endif(MSVC)
 
 add_library(streamanalyzerstatic STATIC ${streamanalyzer_SRCS})
 
-set(streamanalyzer_libs ${LIBSTREAMS_LIBRARIES} ${LIBXML2_LIBRARIES} )
+set(streamanalyzer_libs ${LIBSTREAMS_LIBRARIES} ${LIBXML2_LIBRARIES} ${ICONV_LIBRARIES} )
 if(HAVE_LIBDL)
         set(streamanalyzer_libs ${streamanalyzer_libs} ${LIBDL} )
 endif(HAVE_LIBDL)
