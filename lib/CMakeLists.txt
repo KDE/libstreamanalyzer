@@ -70,10 +70,7 @@ endif(MSVC)
 
 add_library(streamanalyzerstatic STATIC ${streamanalyzer_SRCS})
 
-set(streamanalyzer_libs ${LIBSTREAMS_LIBRARIES} ${LIBXML2_LIBRARIES} ${ICONV_LIBRARIES} )
-if(HAVE_LIBDL)
-        set(streamanalyzer_libs ${streamanalyzer_libs} ${LIBDL} )
-endif(HAVE_LIBDL)
+set(streamanalyzer_libs ${LIBSTREAMS_LIBRARIES} ${LIBXML2_LIBRARIES} ${ICONV_LIBRARIES} ${CMAKE_DL_LIBS} )
 target_link_libraries(streamanalyzerstatic ${streamanalyzer_libs}
 	${CMAKE_THREAD_LIBS_INIT})
 
