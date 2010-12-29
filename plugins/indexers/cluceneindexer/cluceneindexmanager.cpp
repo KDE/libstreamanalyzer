@@ -129,13 +129,11 @@ CLuceneIndexManager::derefWriter() {
 void
 CLuceneIndexManager::openWriter(bool truncate) {
     if (directory == 0) return;
+    if (IndexReader::isLocked(directory)) {
+        IndexReader::unlock(directory);
+    }
     try {
         bool create = truncate || !IndexReader::indexExists(directory);
-        if (!create) {
-            if (IndexReader::isLocked(directory)) {
-                IndexReader::unlock(directory);
-            }
-        }
         indexwriter = new IndexWriter(directory, analyzer, create);
     } catch (CLuceneError& err) {
         fprintf(stderr, "could not create writer: %s\n", err.what());
