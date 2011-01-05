@@ -334,7 +334,7 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
 
   if(fc->bit_rate)
     ar.addValue(factory->bitrateProperty, fc->bit_rate);
-  else if (fc->duration!= no_bitrate) {
+  else if (fc->duration!= no_bitrate && fc->duration > 0) {
     cout<<"Trying to estimate bitrate\n";
     int64_t size;
     if ((size = in->size()) >= 0)
