@@ -348,6 +348,27 @@ ID3EndAnalyzer::checkHeader(const char* header, int32_t headersize) const {
 	  );
 
 }
+
+static void trim(string& s,const string& drop = " ")
+{
+    string r = s.erase(s.find_last_not_of(drop)+1);
+    r.erase(0, r.find_first_not_of(drop));
+}
+
+static bool extract_and_trim(const char* buf, int offset, int length, string& s)
+{
+    // We're extracting here the ID3v1 tags and doing some sanity checks:
+    // 1) Strip of all leading and prefixed spaces
+    // 2) Test if string contains at least something
+    if (!buf[offset])
+	return false;
+    
+    s = string(buf + offset, strnlen(buf + offset, length));
+    trim(s);
+    // Return true if the extracted value is not empty (read: contains something)
+    return !s.empty();
+}
+
 signed char
 ID3EndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream* in) {
     if(!in)
@@ -554,17 +575,21 @@ ID3EndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream* 
 	if (!strncmp("TAG", buf, 3)) {
 
 	    found_tag = true;
+	    
+	    std::string s;
 
-	    if (!found_title && buf[3])
-		indexable.addValue(factory->titleField, string(buf+3, strnlen(buf+3, 30)));
-	    if (!found_artist && buf[33])
-		indexable.addValue(factory->artistField, string(buf+33, strnlen(buf+33, 30)));
-	    if (!found_album && buf[63])
-		addStatement(indexable, albumUri, titlePropertyName, string(buf+63, strnlen(buf+63, 30)));
-	    if (!found_year && buf[93])
-		indexable.addValue(factory->createdField, string(buf+93, strnlen(buf+3, 4)));
-	    if (!found_comment && buf[97])
-		indexable.addValue(factory->commentField, string(buf+97, strnlen(buf+97, 30)));
+	    if (!found_title && extract_and_trim(buf, 3, 30, s)) {
+		indexable.addValue(factory->titleField, s);
+	    }
+	    if (!found_artist && extract_and_trim(buf, 33, 30, s))
+		indexable.addValue(factory->artistField, s);
+	    if (!found_album && extract_and_trim(buf, 63, 30, s))
+		addStatement(indexable, albumUri, titlePropertyName, s);
+	    if (!found_year && extract_and_trim(buf, 93, 4, s))
+		indexable.addValue(factory->createdField, s);
+	    if (!found_comment && extract_and_trim(buf, 97, 30, s)) {
+		indexable.addValue(factory->commentField, s);
+	    }
 	    if (!found_track && !buf[125] && buf[126]) {
 		indexable.addValue(factory->trackNumberField, (int)(buf[126]));
 	    }
