@@ -27,7 +27,7 @@
 #endif
 
 #include <strigi/strigiconfig.h>
-//#include "compat.h"
+#include "compat.h"
 #if !defined(_WIN32) && !defined(_WIN64)
  #include <strigi/processinputstream.h>
 #endif

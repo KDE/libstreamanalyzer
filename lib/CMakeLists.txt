@@ -57,6 +57,9 @@ set(streamanalyzer_SRCS
 	xesamparser.cpp
 )
 
+#add the compatibility files
+set(streamanalyzer_SRCS ${streamanalyzer_SRCS} compat.cpp)
+
 if(MSVC)
 	list(APPEND streamanalyzer_SRCS
 		stgdirent.cpp
