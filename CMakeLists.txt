@@ -121,6 +121,9 @@ install(FILES
 )
 # library
 if(NOT WIN32)
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/lib/libstreamanalyzer.pc.cmake
+		${CMAKE_CURRENT_BINARY_DIR}/lib/libstreamanalyzer.pc)
+
 	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/libstreamanalyzer.pc
 		DESTINATION ${LIB_DESTINATION}/pkgconfig)
 endif(NOT WIN32)

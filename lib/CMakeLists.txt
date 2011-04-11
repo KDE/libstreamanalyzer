@@ -90,11 +90,3 @@ install(TARGETS streamanalyzer
 	RUNTIME DESTINATION bin
 	ARCHIVE DESTINATION ${LIB_DESTINATION}
 )
-
-if(NOT WIN32)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libstreamanalyzer.pc.cmake
-  	${CMAKE_CURRENT_BINARY_DIR}/libstreamanalyzer.pc)
-
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libstreamanalyzer.pc
-  	DESTINATION ${LIB_DESTINATION}/pkgconfig )
-endif(NOT WIN32)
