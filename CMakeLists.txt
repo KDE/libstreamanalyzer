@@ -61,7 +61,12 @@ if(STRIGI_VERSION_STRING)
 else(STRIGI_VERSION_STRING)
 	find_package(LibStreams REQUIRED)
 endif(STRIGI_VERSION_STRING)
+
 find_package(Threads REQUIRED)
+if (NOT CMAKE_USE_PTHREADS_INIT AND NOT CMAKE_USE_WIN32_THREADS_INIT)
+  message(FATAL_ERROR "Strigi needs either pthreads or win32 threads, none was found.")
+endif (NOT CMAKE_USE_PTHREADS_INIT AND NOT CMAKE_USE_WIN32_THREADS_INIT)
+
 find_package(LibXml2 REQUIRED)
 find_package(Iconv REQUIRED)
 
