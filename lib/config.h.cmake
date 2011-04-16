@@ -40,7 +40,7 @@
 //thread stuff
 //////////////////////////////
 #cmakedefine CMAKE_USE_WIN32_THREADS_INIT 1
-#cmakedefine CMAKE_HAVE_PTHREAD_CREATE 1
+#cmakedefine CMAKE_USE_PTHREAD_INIT 1
 
 //////////////////////////////
 //types
