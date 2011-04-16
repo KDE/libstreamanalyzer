@@ -56,8 +56,6 @@
     #define STRIGI_THREAD_JOIN(object) WaitForSingleObject (object, INFINITE)
     #define STRIGI_THREAD_EXIT(ret) ExitThread(ret)
     #define STRIGI_THREAD_SELF() GetCurrentThread()
-#else
-    #error A valid thread library was not found
 #endif //mutex types
 
 #undef CMAKE_USE_PTHREAD_INIT
