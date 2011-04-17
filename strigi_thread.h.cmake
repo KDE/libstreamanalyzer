@@ -21,10 +21,10 @@
 #ifndef STRIGI_THREAD_H
 #define STRIGI_THREAD_H
 
-#cmakedefine CMAKE_USE_PTHREAD_INIT 1
+#cmakedefine CMAKE_USE_PTHREADS_INIT 1
 #cmakedefine CMAKE_USE_WIN32_THREADS_INIT 1
 
-#if defined(CMAKE_USE_PTHREAD_INIT)
+#if defined(CMAKE_USE_PTHREADS_INIT)
     #include <pthread.h>
     #define STRIGI_MUTEX_DEFINE(x) pthread_mutex_t x
     #define STRIGI_MUTEX_INIT(x) pthread_mutex_init(x, 0)
@@ -58,7 +58,7 @@
     #define STRIGI_THREAD_SELF() GetCurrentThread()
 #endif //mutex types
 
-#undef CMAKE_USE_PTHREAD_INIT
+#undef CMAKE_USE_PTHREADS_INIT
 #undef CMAKE_USE_WIN32_THREADS_INIT
 
 class StrigiMutex{
