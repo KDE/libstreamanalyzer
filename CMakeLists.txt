@@ -1,9 +1,14 @@
 project (libstreamanalyzer)
 
-
 ##### cmake settings #####
 
 cmake_minimum_required(VERSION 2.6)
+
+cmake_policy(VERSION 2.6.0)
+if(POLICY CMP0017)
+  cmake_policy(SET CMP0017 NEW)
+endif()
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(MacroCheckGccVisibility)
 include(MacroFindOptionalDep)
