@@ -61,15 +61,16 @@ endif(NOT WIN32 AND NOT CMAKE_SYSTEM MATCHES "SunOS-5*.")
 macro_check_gcc_visibility(__STRIGI_HAVE_GCC_VISIBILITY)
 
 # check for required packages
-if(STRIGI_VERSION_STRING)
-	# libstreams is being compiled now too
-	set(LIBSTREAMS_INCLUDE_DIRS
-		../libstreams/include
-		${CMAKE_CURRENT_BINARY_DIR}/../libstreams/include)
-	set(LIBSTREAMS_LIBRARIES streams)
-else(STRIGI_VERSION_STRING)
-	find_package(LibStreams REQUIRED)
-endif(STRIGI_VERSION_STRING)
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+  find_package(LibStreams REQUIRED)
+else()
+  set(LIBSTREAMS_INCLUDE_DIRS
+    ${libstreams_SOURCE_DIR}/include
+    ${libstreams_BINARY_DIR}/include
+    )
+  set(LIBSTREAMS_LIBRARIES streams)
+endif()
+
 
 find_package(Threads REQUIRED)
 if (NOT CMAKE_USE_PTHREADS_INIT AND NOT CMAKE_USE_WIN32_THREADS_INIT)
