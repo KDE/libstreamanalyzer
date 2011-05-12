@@ -41,12 +41,14 @@ TxtLineAnalyzerFactory::registerFields(FieldRegister& reg) {
 // the file uses uses unix (\n), dos (\r\n) or mac (\r) line endings
     formatField = reg.registerField(
         "http://strigi.sf.net/ontologies/homeless#lineEndingFormat");
-
+    typeField = reg.typeField;
+    
     addField(totalLinesField);
     addField(totalWordsField);
     addField(totalCharactersField);
     addField(maxLineLengthField);
     addField(formatField);
+    addField(typeField);
 }
 
 // Analyzer
@@ -106,6 +108,7 @@ TxtLineAnalyzer::endAnalysis(bool complete) {
         else
             analysisResult->addValue(factory->formatField, "UNIX");
 */
+        analysisResult->addValue(factory->typeField, "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#TextDocument");
     }
     ready = true;
 }
