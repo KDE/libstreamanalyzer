@@ -31,6 +31,7 @@ ADD_STRIGITA(ico icothroughanalyzer.cpp)
 ADD_STRIGITA(sid sidthroughanalyzer.cpp)
 ADD_STRIGITA(rgb rgbthroughanalyzer.cpp)
 ADD_STRIGITA(dds ddsthroughanalyzer.cpp)
+ADD_STRIGITA(sha1 sha1/sha1analyzer.cpp sha1/sha1.cpp )
 
 # Bug 164296: these two analyzers are dummy leftovers.They make sure that
 # possible original, broken analyzers are overwritten/neutralized.
