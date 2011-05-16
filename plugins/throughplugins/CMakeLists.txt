@@ -1,4 +1,5 @@
-MACRO(ADD_STRIGITA libname files)
+MACRO(ADD_STRIGITA libname)
+  set(files ${ARGN})
   if(WIN32)
     # this is needed to have mingw, cygwin and msvc libs installed in one directory
     if(MSVC)
