@@ -37,6 +37,9 @@ Sha1Analyzer::~Sha1Analyzer() {
 
 InputStream* Sha1Analyzer::connectInputStream(InputStream* in)
 {
+    if( !in )
+        return in;
+
     //cout << "Starting.. " << endl;
     
     const int64_t pos = in->position();
