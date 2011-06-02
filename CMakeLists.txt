@@ -15,7 +15,7 @@ enable_testing()
 # due to a bug in libxml2, we only get thread support if _REENTRANT is defined
 add_definitions(-D_REENTRANT)
 
-set(LIBSTREAMANALYZER_VERSION 0.7.3)
+set(LIBSTREAMANALYZER_VERSION 0.7.4)
 set(LIBSTREAMANALYZER_SOVERSION 0)
 option(BUILD_UTILS "build luceneindexer, xmlindexer, rdfindexer, ontoprint utilities" ON)
 option(BUILD_DEEPTOOLS "build deep find and deepgrep tools" ON)
