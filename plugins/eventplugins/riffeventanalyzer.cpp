@@ -383,9 +383,9 @@ RiffEventAnalyzerFactory::registerFields(Strigi::FieldRegister& reg) {
     lengthField = reg.registerField(
         "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#duration");
     resolutionHeightField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#verticalResolution");
+        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#height");
     resolutionWidthField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#horizontalResolution");
+        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#width");
     frameRateField = reg.registerField(
         "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#frameRate");
     videoCodecField = reg.registerField(

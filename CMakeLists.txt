@@ -1,9 +1,14 @@
 project (libstreamanalyzer)
 
-
 ##### cmake settings #####
 
 cmake_minimum_required(VERSION 2.6)
+
+cmake_policy(VERSION 2.6.0)
+if(POLICY CMP0017)
+  cmake_policy(SET CMP0017 NEW)
+endif()
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(MacroCheckGccVisibility)
 include(MacroFindOptionalDep)
@@ -15,8 +20,12 @@ enable_testing()
 # due to a bug in libxml2, we only get thread support if _REENTRANT is defined
 add_definitions(-D_REENTRANT)
 
-set(LIBSTREAMANALYZER_VERSION 0.7.4)
-set(LIBSTREAMANALYZER_SOVERSION 0)
+set(LIBSTREAMANALYZER_VERSION_MAJOR 0)
+set(LIBSTREAMANALYZER_VERSION_MINOR 7)
+set(LIBSTREAMANALYZER_VERSION_PATCH 4)
+set(LIBSTREAMANALYZER_VERSION ${LIBSTREAMANALYZER_VERSION_MAJOR}.${LIBSTREAMANALYZER_VERSION_MINOR}.${LIBSTREAMANALYZER_VERSION_PATCH})
+set(LIBSTREAMANALYZER_SOVERSION ${LIBSTREAMANALYZER_VERSION_MAJOR})
+
 option(BUILD_UTILS "build luceneindexer, xmlindexer, rdfindexer, ontoprint utilities" ON)
 option(BUILD_DEEPTOOLS "build deep find and deepgrep tools" ON)
 option(ENABLE_XINE
@@ -52,15 +61,16 @@ endif(NOT WIN32 AND NOT CMAKE_SYSTEM MATCHES "SunOS-5*.")
 macro_check_gcc_visibility(__STRIGI_HAVE_GCC_VISIBILITY)
 
 # check for required packages
-if(STRIGI_VERSION_STRING)
-	# libstreams is being compiled now too
-	set(LIBSTREAMS_INCLUDE_DIRS
-		../libstreams/include
-		${CMAKE_CURRENT_BINARY_DIR}/../libstreams/include)
-	set(LIBSTREAMS_LIBRARIES streams)
-else(STRIGI_VERSION_STRING)
-	find_package(LibStreams REQUIRED)
-endif(STRIGI_VERSION_STRING)
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+  find_package(LibStreams REQUIRED)
+else()
+  set(LIBSTREAMS_INCLUDE_DIRS
+    ${libstreams_SOURCE_DIR}/include
+    ${libstreams_BINARY_DIR}/include
+    )
+  set(LIBSTREAMS_LIBRARIES streams)
+endif()
+
 
 find_package(Threads REQUIRED)
 if (NOT CMAKE_USE_PTHREADS_INIT AND NOT CMAKE_USE_WIN32_THREADS_INIT)
