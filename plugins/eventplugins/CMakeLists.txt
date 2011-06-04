@@ -18,4 +18,7 @@ MACRO(ADD_STRIGIEA libname files)
   install(TARGETS ${libname} LIBRARY DESTINATION ${LIB_DESTINATION}/strigi)
 ENDMACRO(ADD_STRIGIEA)
 
+include_directories(.)
+
 ADD_STRIGIEA(riff riffeventanalyzer.cpp)
+ADD_STRIGIEA(digest digesteventanalyzer.cpp)

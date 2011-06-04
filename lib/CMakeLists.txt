@@ -18,7 +18,6 @@ set(streamanalyzer_SRCS
 	query.cpp
 	queryparser.cpp
 	saxeventanalyzer.cpp
-	sha1.cpp
 	streamanalyzer.cpp
 	streamanalyzerfactory.cpp
 	streamsaxanalyzer.cpp
@@ -45,7 +44,6 @@ set(streamanalyzer_SRCS
 	endanalyzers/textendanalyzer.cpp
 	endanalyzers/zipendanalyzer.cpp
 	endanalyzers/zipexeendanalyzer.cpp
-	eventanalyzers/digesteventanalyzer.cpp
 	eventanalyzers/mimeeventanalyzer.cpp
 	helperanalyzers/odfcontenthelperanalyzer.cpp
 	helperanalyzers/odfmetahelperanalyzer.cpp
