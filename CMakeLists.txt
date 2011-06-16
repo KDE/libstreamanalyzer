@@ -78,6 +78,7 @@ endif (NOT CMAKE_USE_PTHREADS_INIT AND NOT CMAKE_USE_WIN32_THREADS_INIT)
 
 find_package(LibXml2 REQUIRED)
 find_package(Iconv REQUIRED)
+find_package(Boost REQUIRED)
 
 find_optional_dep(CLucene ENABLE_CLUCENE CLucene_FOUND "CLucene backend")
 find_optional_dep(CLucene1 ENABLE_CLUCENE_NG CLUCENE1_FOUND "CLucene Version 1+ backend")
@@ -105,6 +106,7 @@ include_directories(${LIBSTREAMS_INCLUDE_DIRS}
 	${FFMPEG_INCLUDE_DIRS}
 	${MAGIC_INCLUDE_DIR}
 	${LIBXML2_INCLUDE_DIR}
+        ${Boost_INCLUDE_DIR}
 )
 if(XATTR_FOUND)
 	include_directories(${XATTR_INCLUDE_DIR})
