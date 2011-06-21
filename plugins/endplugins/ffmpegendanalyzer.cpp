@@ -348,7 +348,7 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
     if ((size = in->size()) >= 0)
       ar.addValue(factory->durationProperty, (uint32_t)(size/(fc->bit_rate/8)));
   }
-  if(fc->nb_streams==1 && fc->streams[0]->codec->codec_type == CODEC_TYPE_AUDIO) {
+  if(fc->nb_streams==1 && fc->streams[0]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
     ar.addValue(factory->typeProperty, NFO "Audio");
     ar.addValue(factory->typeProperty, NMM_DRAFT "MusicPiece");
   } else {
@@ -359,7 +359,7 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
     const AVStream &stream = *fc->streams[i];
     const AVCodecContext &codec = *stream.codec;
     
-    if (codec.codec_type == CODEC_TYPE_AUDIO || codec.codec_type == CODEC_TYPE_VIDEO) {
+    if (codec.codec_type == AVMEDIA_TYPE_AUDIO || codec.codec_type == AVMEDIA_TYPE_VIDEO) {
       const string streamuri = ar.newAnonymousUri();
       ar.addValue(factory->hasPartProperty, streamuri);
       ar.addTriplet(streamuri, partOfPropertyName, ar.path());
@@ -370,8 +370,16 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
         outs << (stream.duration * stream.time_base.num / stream.time_base.den);
         ar.addTriplet(streamuri, durationPropertyName,outs.str());
       }
-      if (size_t len = strlen(stream.language)) {
-        ar.addTriplet(streamuri, languagePropertyName, string(stream.language, len));
+#if FF_API_OLD_METADATA2
+      AVMetadataTag *entry = av_metadata_get(stream.metadata, "language", NULL, 0);
+#else
+      AVDictionaryEntry *entry = av_dict_get(stream.metadata, "language", NULL, 0);
+#endif
+      if (entry != NULL) {
+        const char *languageValue = entry->value;
+        if (size_t len = strlen(languageValue)) {
+          ar.addTriplet(streamuri, languagePropertyName, string(languageValue, len));
+        }
       }
       const AVCodec *p = avcodec_find_decoder(codec.codec_id);
       if (p) {
@@ -408,7 +416,7 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
         ar.addTriplet(streamuri, bitratePropertyName, outs.str());
       }
 
-      if (codec.codec_type == CODEC_TYPE_AUDIO) {
+      if (codec.codec_type == AVMEDIA_TYPE_AUDIO) {
         
         ar.addTriplet(streamuri, typePropertyName, audioClassName);
         if (codec.channels) {
@@ -458,36 +466,107 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
   }
 
   // Tags
-  
-  if (int32_t len = strlen(fc->title)) {
-    ar.addValue(factory->titleProperty, string(fc->title, len) );
+#if FF_API_OLD_METADATA2
+      AVMetadataTag *entry = av_metadata_get(fc->metadata, "title", NULL, 0);
+#else
+      AVDictionaryEntry *entry = av_dict_get(fc->metadata, "title", NULL, 0);
+#endif
+  if (entry != NULL)
+  {
+    const char *titleValue = entry->value;
+    if (int32_t len = strlen(titleValue)) {
+      ar.addValue(factory->titleProperty, string(titleValue, len) );
+    }
   }
-  if (int32_t len = strlen(fc->author)) {
-    const string creatoruri = ar.newAnonymousUri();
-    ar.addValue(factory->creatorProperty, creatoruri);
-    ar.addTriplet(creatoruri, typePropertyName, contactClassName);
-    ar.addTriplet(creatoruri, fullnamePropertyName, string(fc->author, len) );
+#if FF_API_OLD_METADATA2
+  entry = av_metadata_get(fc->metadata, "author", NULL, 0);
+#else
+  entry = av_dict_get(fc->metadata, "author", NULL, 0);
+#endif
+  if (entry != NULL)
+  {
+    const char *authorValue = entry->value;
+    if (int32_t len = strlen(authorValue)) {
+      const string creatoruri = ar.newAnonymousUri();
+      ar.addValue(factory->creatorProperty, creatoruri);
+      ar.addTriplet(creatoruri, typePropertyName, contactClassName);
+      ar.addTriplet(creatoruri, fullnamePropertyName, string(authorValue, len) );
+    }
   }
-  if (int32_t len = strlen(fc->copyright)) {
-    ar.addValue(factory->copyrightProperty, string(fc->copyright, len) );
+#if FF_API_OLD_METADATA2
+  entry = av_metadata_get(fc->metadata, "copyright", NULL, 0);
+#else
+  entry = av_dict_get(fc->metadata, "copyright", NULL, 0);
+#endif
+  if (entry != NULL)
+  {
+    const char *copyrightValue = entry->value;
+    if (int32_t len = strlen(copyrightValue)) {
+      ar.addValue(factory->copyrightProperty, string(copyrightValue, len) );
+    }
   }
-  if (int32_t len = strlen(fc->comment)) {
-    ar.addValue(factory->commentProperty, string(fc->comment, len) );
+#if FF_API_OLD_METADATA2
+  entry = av_metadata_get(fc->metadata, "comment", NULL, 0);
+#else
+  entry = av_dict_get(fc->metadata, "comment", NULL, 0);
+#endif
+  if (entry != NULL)
+  {
+    const char *commentValue = entry->value;
+    if (int32_t len = strlen(commentValue)) {
+      ar.addValue(factory->commentProperty, string(commentValue, len) );
+    }
   }
-  if (int32_t len = strlen(fc->album)) {
-    const string album = ar.newAnonymousUri();
-    ar.addValue(factory->albumProperty, album);
+#if FF_API_OLD_METADATA2
+  entry = av_metadata_get(fc->metadata, "album", NULL, 0);
+#else
+  entry = av_dict_get(fc->metadata, "album", NULL, 0);
+#endif
+  if (entry != NULL)
+  {
+    const char *albumValue = entry->value;
+    if (int32_t len = strlen(albumValue)) {
+      const string album = ar.newAnonymousUri();
+      ar.addValue(factory->albumProperty, album);
     ar.addTriplet(album, typePropertyName, albumClassName);
-    ar.addTriplet(album, titlePropertyName, string(fc->album, len) );
+    ar.addTriplet(album, titlePropertyName, string(albumValue, len) );
+    }
   }
-  if (int32_t len = strlen(fc->genre)) {
-    ar.addValue(factory->genreProperty, string(fc->genre, len) );
+#if FF_API_OLD_METADATA2
+  entry = av_metadata_get(fc->metadata, "genre", NULL, 0);
+#else
+  entry = av_dict_get(fc->metadata, "genre", NULL, 0);
+#endif
+  if (entry != NULL)
+  {
+    const char *genreValue = entry->value;
+    if (int32_t len = strlen(genreValue)) {
+      ar.addValue(factory->genreProperty, string(genreValue, len) );
+    }
   }
-  if (fc->track) {
-    ar.addValue(factory->trackProperty, fc->track);
+#if FF_API_OLD_METADATA2
+  entry = av_metadata_get(fc->metadata, "track", NULL, 0);
+#else
+  entry = av_dict_get(fc->metadata, "track", NULL, 0);
+#endif
+  if (entry != NULL)
+  {
+    const char *trackValue = entry->value;
+    if (int32_t len = strlen(trackValue)) {
+      ar.addValue(factory->trackProperty, string(trackValue, len) );
+    }
   }
-  if (fc->year) {
-    ar.addValue(factory->createdProperty, fc->year);
+#if FF_API_OLD_METADATA2
+  entry = av_metadata_get(fc->metadata, "year", NULL, 0);
+#else
+  entry = av_dict_get(fc->metadata, "year", NULL, 0);
+#endif
+  if (entry != NULL)
+  {
+    const char *yearValue = entry->value;
+    if (int32_t len = strlen(yearValue)) {
+      ar.addValue(factory->createdProperty, string(yearValue, len) );
+    }
   }
 
   av_close_input_stream(fc);
