@@ -194,8 +194,7 @@ PngEndAnalyzer::analyze(AnalysisResult& as, InputStream* in) {
         (c[14] == 0) ? "Deflate" : "Unknown");
     */
     as.addValue(factory->interlaceModeField,
-        ((uint)c[16] < sizeof(interlaceModes)/sizeof(interlaceModes[0]))
-                   ? interlaceModes[(int)c[16]] : "Unknown");
+        (uint)c[16] != 0);
 
     // read the rest of the chunks
     // TODO: check if we want a fast or complete analysis
