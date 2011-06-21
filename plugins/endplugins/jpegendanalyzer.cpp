@@ -32,6 +32,7 @@
 #include <exiv2/jpgimage.hpp>
 #include <exiv2/error.hpp>
 #include <math.h>
+#include <time.h>
 
 #ifdef _MSC_VER
 // at least MSVC2008 needs this define for defines like M_LN2
@@ -313,15 +314,22 @@ JpegEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
                    factory->exifFields.find("Exif.Photo.ApertureValue")->second,
                    aperture);
             }
-            continue;
         }
-	if (i->key() == "Exif.Photo.PixelXDimension" || i->key() == "Exif.Photo.PixelYDimension") continue;
-        map<string,const RegisteredField*>::const_iterator f
-            = factory->exifFields.find(i->key());
-        if (f != factory->exifFields.end() && f->second) {
-            ar.addValue(f->second, i->toString());
-//        } else {
-//            cerr << i->key() << "\t" << i->value() << endl;
+        else if(i->key() == "Exif.Image.DateTime") {
+            // the exif datetime string format is as follows: "2005:06:03 17:13:33"
+            struct tm date;
+            if(sscanf(i->toString().c_str(), "%d:%d:%d %d:%d:%d", &date.tm_year, &date.tm_mon, &date.tm_mday, &date.tm_hour, &date.tm_min, &date.tm_sec) == 6) {
+                ar.addValue(factory->exifFields.find("Exif.Image.DateTime")->second, uint32_t(mktime(&date)));
+            }
+        }
+        else if (i->key() != "Exif.Photo.PixelXDimension" && i->key() != "Exif.Photo.PixelYDimension") {
+            map<string,const RegisteredField*>::const_iterator f
+                    = factory->exifFields.find(i->key());
+            if (f != factory->exifFields.end() && f->second) {
+                ar.addValue(f->second, i->toString());
+                //        } else {
+                //            cerr << i->key() << "\t" << i->value() << endl;
+            }
         }
     }
 #if (EXIV2_TEST_VERSION(0,17,91))
