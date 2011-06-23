@@ -21,8 +21,9 @@
  */
 
 #include "flacendanalyzer.h"
+#include "analysisresult.h"
+
 #include <strigi/strigiconfig.h>
-#include <strigi/analysisresult.h>
 #include <strigi/textutils.h>
 #include "../rdfnamespaces.h"
 #include <strigi/stringstream.h>
@@ -187,6 +188,7 @@ FlacEndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream*
         if (desclen && indexable.child()) {
           indexable.child()->addValue(factory->descriptionField, description);
         }
+        indexable.finishIndexChild();
 	
       } else if ((blocktype&0x7F)==4) { // Vorbis Comment block
 	const char *p2 = buf + 4 + readLittleEndianUInt32(buf); //skip vendor string. maybe put it into metadata as soon as there's some place for it

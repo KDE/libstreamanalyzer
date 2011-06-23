@@ -22,14 +22,16 @@
 # include "config.h"
 #endif
 
-#include <strigi/analysisresult.h>
+#include "analysisresult.h"
+#include "indexwriter.h"
+#include "analyzerconfiguration.h"
+#include "streamanalyzer.h"
+#include "strigi_thread.h"
+
 #include <strigi/strigiconfig.h>
-#include <strigi/indexwriter.h>
-#include <strigi/analyzerconfiguration.h>
-#include <strigi/streamanalyzer.h>
 #include <strigi/streambase.h>
 #include <strigi/textutils.h>
-#include <strigi/strigi_thread.h>
+
 #include <time.h>
 #include <string>
 #include <cstdlib>
@@ -236,8 +238,7 @@ signed char
 AnalysisResult::indexChild(const std::string& name, time_t mt,
         InputStream* file) {
     // clean up previous child
-    delete p->m_child;
-    p->m_child = 0;
+    finishIndexChild();
 
     std::string path(p->m_path);
     path.append("/");
@@ -251,6 +252,12 @@ AnalysisResult::indexChild(const std::string& name, time_t mt,
     }
     return 0;
 }
+void
+AnalysisResult::finishIndexChild() {
+    delete p->m_child;
+    p->m_child = 0;
+}
+
 AnalysisResult*
 AnalysisResult::child() {
     return p->m_child;

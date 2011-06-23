@@ -21,9 +21,9 @@
  Include the strigi specific headers.
 */
 #define STRIGI_IMPORT_API
-#include <strigi/analyzerplugin.h>
-#include <strigi/streamendanalyzer.h>
-#include <strigi/analysisresult.h>
+#include "analyzerplugin.h"
+#include "streamendanalyzer.h"
+#include "analysisresult.h"
 #include <strigi/fieldtypes.h>
 #include <strigi/stringstream.h>
 #include <strigi/textutils.h>
@@ -345,9 +345,11 @@ JpegEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
 #if (EXIV2_TEST_VERSION(0,17,91))
         ar.indexChild(thumbname + thumb.extension(), ar.mTime(),
             &thumbstream);
+        ar.finishIndexChild();
 #else
         ar.indexChild(thumbname + exif.thumbnailExtension(), ar.mTime(),
             &thumbstream);
+        ar.finishIndexChild();
 #endif
     }
 

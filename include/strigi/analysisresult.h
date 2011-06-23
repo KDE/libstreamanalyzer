@@ -114,10 +114,23 @@ public:
     signed char indexChild(const std::string& name, time_t mt,
         StreamBase<char>* file);
     /**
+     * @brief Finish the indexing of a child.
+     *
+     * This method should be called to finish the indexing of
+     * a child stream started via indexChild(). It will clean up
+     * and invalidate the AnalysisResult returned by child().
+     *
+     * indexChild() will automatically finish the last indexed
+     * child.
+     *
+     * @since Strigi 0.8
+     */
+    void finishIndexChild();
+    /**
      * @brief return a pointer to the last child that was indexed
      * Calling indexChild() creates a child AnalysisResult. The pointer returned
-     * by this function is valid until the next call to indexChid() or until
-     * this instance is destroyed.
+     * by this function is valid until a call to finishIndexChild() or the next
+     * call to indexChild().
      * @return a pointer to the last child that was indexed or NULL if no
      *         child was indexed yet
      * @since Strigi 0.6.5

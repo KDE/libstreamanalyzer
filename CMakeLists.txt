@@ -96,7 +96,9 @@ configure_file(${libstreamanalyzer_SOURCE_DIR}/strigi_thread.h.cmake
 # every directory needs the headers that will be installed
 include_directories(${LIBSTREAMS_INCLUDE_DIRS}
 	${libstreamanalyzer_SOURCE_DIR}/include
+	${libstreamanalyzer_SOURCE_DIR}/include/strigi
 	${libstreamanalyzer_BINARY_DIR}/include
+	${libstreamanalyzer_BINARY_DIR}/include/strigi
         ${libstreamanalyzer_SOURCE_DIR}/lib
 	${libstreamanalyzer_BINARY_DIR}/lib
 	${ICONV_INCLUDE_DIR}

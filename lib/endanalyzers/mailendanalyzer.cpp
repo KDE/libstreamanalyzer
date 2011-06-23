@@ -18,10 +18,10 @@
  * Boston, MA 02110-1301, USA.
  */
 #include "mailendanalyzer.h"
+#include "analysisresult.h"
 #include <strigi/strigiconfig.h>
 #include <strigi/mailinputstream.h>
 #include <strigi/encodinginputstream.h>
-#include <strigi/analysisresult.h>
 #include "textendanalyzer.h"
 #include <strigi/fieldtypes.h>
 #include <iostream>
@@ -202,6 +202,7 @@ MailEndAnalyzer::analyze(AnalysisResult& idx, InputStream* in) {
         if (idx.child()) {
             idx.child()->addValue(factory->typeField, mimePartClassName);
         }
+        idx.finishIndexChild();
 
         s = mail.nextEntry();
         n++;

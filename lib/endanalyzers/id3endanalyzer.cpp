@@ -24,9 +24,9 @@
 #endif
 
 #include "id3endanalyzer.h"
+#include "analysisresult.h"
 #include "../rdfnamespaces.h"
 #include <strigi/strigiconfig.h>
-#include <strigi/analysisresult.h>
 #include <strigi/textutils.h>
 #include <strigi/stringstream.h>
 #include <iostream>
@@ -441,6 +441,8 @@ ID3EndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream* 
 				indexable.child()->addValue(factory->descriptionField, conv.convert(desc, desclen) );
 			    }
 			}
+
+                        indexable.finishIndexChild();
 		    }
 		}
 	    }
