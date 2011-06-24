@@ -1,6 +1,7 @@
 /* This file is part of Strigi Desktop Search
  *
  * Copyright (C) 2010 Evgeny Egorochkin <phreedom.stdin@gmail.com>
+ * Copyright (C) 2011 Tirtha Chatterjee <tirtha.p.chatterjee@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -370,11 +371,11 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
         outs << (stream.duration * stream.time_base.num / stream.time_base.den);
         ar.addTriplet(streamuri, durationPropertyName,outs.str());
       }
-#if FF_API_OLD_METADATA2
+
+      //FIXME we must stop using the deprecated fuction av_metadata_get and use
+      // av_dict_get once we are able to detect the version of FFMpeg being used
+      // using version macros. same goes for all occurences of this function.
       AVMetadataTag *entry = av_metadata_get(stream.metadata, "language", NULL, 0);
-#else
-      AVDictionaryEntry *entry = av_dict_get(stream.metadata, "language", NULL, 0);
-#endif
       if (entry != NULL) {
         const char *languageValue = entry->value;
         if (size_t len = strlen(languageValue)) {
@@ -466,11 +467,8 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
   }
 
   // Tags
-#if FF_API_OLD_METADATA2
-      AVMetadataTag *entry = av_metadata_get(fc->metadata, "title", NULL, 0);
-#else
-      AVDictionaryEntry *entry = av_dict_get(fc->metadata, "title", NULL, 0);
-#endif
+
+  AVMetadataTag *entry = av_metadata_get(fc->metadata, "title", NULL, 0);
   if (entry != NULL)
   {
     const char *titleValue = entry->value;
@@ -478,11 +476,8 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
       ar.addValue(factory->titleProperty, string(titleValue, len) );
     }
   }
-#if FF_API_OLD_METADATA2
+
   entry = av_metadata_get(fc->metadata, "author", NULL, 0);
-#else
-  entry = av_dict_get(fc->metadata, "author", NULL, 0);
-#endif
   if (entry != NULL)
   {
     const char *authorValue = entry->value;
@@ -493,11 +488,8 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
       ar.addTriplet(creatoruri, fullnamePropertyName, string(authorValue, len) );
     }
   }
-#if FF_API_OLD_METADATA2
+
   entry = av_metadata_get(fc->metadata, "copyright", NULL, 0);
-#else
-  entry = av_dict_get(fc->metadata, "copyright", NULL, 0);
-#endif
   if (entry != NULL)
   {
     const char *copyrightValue = entry->value;
@@ -505,11 +497,8 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
       ar.addValue(factory->copyrightProperty, string(copyrightValue, len) );
     }
   }
-#if FF_API_OLD_METADATA2
+
   entry = av_metadata_get(fc->metadata, "comment", NULL, 0);
-#else
-  entry = av_dict_get(fc->metadata, "comment", NULL, 0);
-#endif
   if (entry != NULL)
   {
     const char *commentValue = entry->value;
@@ -517,11 +506,8 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
       ar.addValue(factory->commentProperty, string(commentValue, len) );
     }
   }
-#if FF_API_OLD_METADATA2
+
   entry = av_metadata_get(fc->metadata, "album", NULL, 0);
-#else
-  entry = av_dict_get(fc->metadata, "album", NULL, 0);
-#endif
   if (entry != NULL)
   {
     const char *albumValue = entry->value;
@@ -532,11 +518,8 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
     ar.addTriplet(album, titlePropertyName, string(albumValue, len) );
     }
   }
-#if FF_API_OLD_METADATA2
+
   entry = av_metadata_get(fc->metadata, "genre", NULL, 0);
-#else
-  entry = av_dict_get(fc->metadata, "genre", NULL, 0);
-#endif
   if (entry != NULL)
   {
     const char *genreValue = entry->value;
@@ -544,11 +527,8 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
       ar.addValue(factory->genreProperty, string(genreValue, len) );
     }
   }
-#if FF_API_OLD_METADATA2
+
   entry = av_metadata_get(fc->metadata, "track", NULL, 0);
-#else
-  entry = av_dict_get(fc->metadata, "track", NULL, 0);
-#endif
   if (entry != NULL)
   {
     const char *trackValue = entry->value;
@@ -556,11 +536,8 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
       ar.addValue(factory->trackProperty, string(trackValue, len) );
     }
   }
-#if FF_API_OLD_METADATA2
+
   entry = av_metadata_get(fc->metadata, "year", NULL, 0);
-#else
-  entry = av_dict_get(fc->metadata, "year", NULL, 0);
-#endif
   if (entry != NULL)
   {
     const char *yearValue = entry->value;
