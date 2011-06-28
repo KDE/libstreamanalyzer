@@ -45,7 +45,6 @@ using lucene::util::BitSet;
 using lucene::util::Reader;
 using namespace std;
 using namespace Strigi;
-typedef boost::shared_ptr<lucene::index::Term> LuceneTerm;
 
 struct CLuceneDocData {
     lucene::document::Document doc;
@@ -219,18 +218,19 @@ void
 CLuceneIndexWriter::deleteEntry(const string& entry, lucene::index::IndexWriter* writer, lucene::index::IndexReader* reader) {
     wstring path(utf8toucs2(entry));
 {
-    LuceneTerm t(_CLNEW Term(systemlocation(), path.c_str()));
+    Term* t = _CLNEW Term(systemlocation(), path.c_str());
     writer->deleteDocuments(t);
+    _CLDECDELETE(t);
 }
 {
-    LuceneTerm t(_CLNEW Term(parentlocation(), path.c_str()));
+    Term* t = _CLNEW Term(parentlocation(), path.c_str());
     writer->deleteDocuments(t);
-
+    _CLDECDELETE(t);
 }
 {
     // delete all deeper nested files
     wstring v = utf8toucs2(entry+"/");
-    LuceneTerm t(_CLNEW Term(parentlocation(), v.c_str()));
+    Term* t(_CLNEW Term(parentlocation(), v.c_str()));
     PrefixFilter* filter = _CLNEW PrefixFilter(t);
     BitSet* b = filter->bits(reader);
     _CLDELETE(filter);
@@ -241,6 +241,7 @@ CLuceneIndexWriter::deleteEntry(const string& entry, lucene::index::IndexWriter*
         }
     }
     _CLDELETE(b);
+    _CLDECDELETE(t);
 }
 }
 void

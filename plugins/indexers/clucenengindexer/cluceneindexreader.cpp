@@ -56,7 +56,6 @@ using lucene::document::DocumentFieldEnumeration;
 using Strigi::IndexedDocument;
 using Strigi::Variant;
 using Strigi::FieldRegister;
-typedef boost::shared_ptr<lucene::index::Term> LuceneTerm;
 
 using namespace std;
 
@@ -101,9 +100,9 @@ public:
     CLuceneIndexReader& reader;
     Private(CLuceneIndexReader& r) :reader(r) {}
 
-    static LuceneTerm createTerm(const wchar_t* name, const string& value);
-    static LuceneTerm createKeywordTerm(const wchar_t* name, const string& value);
-    static LuceneTerm createWildCardTerm(const wchar_t* name, const string& value);
+    static Term* createTerm(const wchar_t* name, const string& value);
+    static Term* createKeywordTerm(const wchar_t* name, const string& value);
+    static Term* createWildCardTerm(const wchar_t* name, const string& value);
     Query* createQuery(const Strigi::Query& query);
     Query* createSimpleQuery(const Strigi::Query& query);
     static Query* createSingleFieldQuery(const string& field,
@@ -187,12 +186,12 @@ CLuceneIndexReader::mapId(const char* id) {
 }
 #endif
 
-LuceneTerm
+Term*
 CLuceneIndexReader::Private::createWildCardTerm(const wchar_t* name,
         const string& value) {
-    return LuceneTerm(_CLNEW Term(name, utf8toucs2(value).c_str()));
+    return _CLNEW Term(name, utf8toucs2(value).c_str());
 }
-LuceneTerm
+Term*
 CLuceneIndexReader::Private::createTerm(const wchar_t* name,
         const string& value) {
     wstring v = utf8toucs2(value);
@@ -206,16 +205,15 @@ CLuceneIndexReader::Private::createTerm(const wchar_t* name,
     } else {
         tv = v.c_str();
     }
-    LuceneTerm t(_CLNEW Term(name, tv));
+    Term* t = _CLNEW Term(name, tv);
     _CLDELETE(ts);
     return t;
 }
-LuceneTerm
+Term*
 CLuceneIndexReader::Private::createKeywordTerm(const wchar_t* name,
         const string& value) {
     wstring v = utf8toucs2(value);
-    LuceneTerm t(_CLNEW Term(name, v.c_str()));
-    return t;
+    return _CLNEW Term(name, v.c_str());
 }
 BooleanQuery*
 CLuceneIndexReader::Private::createBooleanQuery(const Strigi::Query& query) {
@@ -249,25 +247,24 @@ CLuceneIndexReader::Private::createSingleFieldQuery(const string& field,
         const Strigi::Query& query) {
     wstring fieldname = mapId(field.c_str());
     Query* q;
-    LuceneTerm t;
-    LuceneTerm nullTerm;
+    Term* t;
     const string& val = query.term().string();
     switch (query.type()) {
     case Strigi::Query::LessThan:
           t = createTerm(fieldname.c_str(), val.c_str());
-          q = _CLNEW RangeQuery(nullTerm, t, false);
+          q = _CLNEW RangeQuery(0, t, false);
           break;
     case Strigi::Query::LessThanEquals:
           t = createTerm(fieldname.c_str(), query.term().string());
-          q = _CLNEW RangeQuery(nullTerm, t, true);
+          q = _CLNEW RangeQuery(0, t, true);
           break;
     case Strigi::Query::GreaterThan:
           t = createTerm(fieldname.c_str(), query.term().string());
-          q = _CLNEW RangeQuery(t, nullTerm, false);
+          q = _CLNEW RangeQuery(t, 0, false);
           break;
     case Strigi::Query::GreaterThanEquals:
           t = createTerm(fieldname.c_str(), query.term().string());
-          q = _CLNEW RangeQuery(t, nullTerm, true);
+          q = _CLNEW RangeQuery(t, 0, true);
           break;
     case Strigi::Query::Keyword:
           t = createKeywordTerm(fieldname.c_str(), query.term().string());
@@ -282,6 +279,7 @@ CLuceneIndexReader::Private::createSingleFieldQuery(const string& field,
                q = _CLNEW TermQuery(t);
           }
     }
+    _CLDECDELETE(t);
     return q;
 }
 Query*
@@ -584,12 +582,13 @@ CLuceneIndexReader::documentId(const string& uri) {
     if (reader == NULL) return -1;
     int64_t id = -1;
 
-    LuceneTerm term(_CLNEW Term(mapId(Private::systemlocation()), utf8toucs2( uri ).c_str()));
+    Term* term = _CLNEW Term(mapId(Private::systemlocation()), utf8toucs2( uri ).c_str());
     TermDocs* docs = reader->termDocs(term);
     if (docs->next()) {
         id = docs->doc();
     }
     _CLDELETE(docs);
+    _CLDECDELETE(term);
 
     if (id != -1 && reader->isDeleted((int32_t)id)) {
         id = -1;
@@ -770,12 +769,13 @@ CLuceneIndexReader::keywords(const string& keywordmatch,
     const wchar_t* prefixtext = prefix.c_str();
     string::size_type prefixLen = prefix.length();
     vector<string>::const_iterator i;
-    LuceneTerm lastTerm;
+    Term* lastTerm;
     for (i = fn.begin(); i != fn.end() && s.size() << max; ++i) {
          wstring fieldname(utf8toucs2(*i));
-         LuceneTerm term(_CLNEW Term(fieldname.c_str(), prefix.c_str()));
+         Term* term = _CLNEW Term(fieldname.c_str(), prefix.c_str());
          TermEnum* enumerator = reader->terms(term);
          do {
+             _CLDECDELETE(lastTerm);
              lastTerm = enumerator->term();
              if (lastTerm) {
                  if (prefixLen > lastTerm->textLength()
@@ -786,7 +786,9 @@ CLuceneIndexReader::keywords(const string& keywordmatch,
                  s.insert(lastTerm->text());
              }
          } while (enumerator->next() && s.size() < max);
+         _CLDECDELETE(term);
     }
+    _CLDECDELETE(lastTerm);
 
     k.reserve(s.size());
     set<wstring>::const_iterator j;

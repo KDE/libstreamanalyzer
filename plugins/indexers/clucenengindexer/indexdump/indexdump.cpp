@@ -40,7 +40,6 @@ using lucene::search::HitCollector;
 using lucene::util::BitSet;
 using lucene::document::DocumentFieldEnumeration;
 using lucene::index::IndexReader;
-typedef boost::shared_ptr<lucene::index::Term> LuceneTerm;
 
 std::string
 t2a(const TCHAR* t) {
@@ -68,10 +67,11 @@ indexdump(const char* dir) {
         }
     }
     TermEnum* terms = indexreader->terms();
-    LuceneTerm t;
+    Term* t = 0;
     while (terms->next()) {
         t = terms->term();
         printf("%s: %s\n", t2a(t->field()).c_str(), t2a(t->text()).c_str());
+        _CLDECDELETE(t);
     }
 }
 int
