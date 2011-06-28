@@ -41,9 +41,9 @@ macro(FIND_OPTIONAL_DEP _package _enabled _found _description)
 
     if(${_enabled})
         if(FORCE_DEPS)
-            find_package(${_package} REQUIRED)
+            find_package(${_package} REQUIRED ${ARGN})
         else(FORCE_DEPS)
-            find_package(${_package})
+            find_package(${_package} ${ARGN})
         endif(FORCE_DEPS)
     endif(${_enabled})
 
