@@ -35,13 +35,12 @@ StreamStatus
 PdfParser::read(int32_t min, int32_t max) {
     int32_t off = (int32_t)(pos-start);
     int32_t d = (int32_t)(stream->position() - bufferStart);
-    min += d;
-    if (max > 0) max += d;
+    bufferStart += off;
     stream->reset(bufferStart);
     int32_t n = stream->read(start, min, max);
 //    printf("objstart %i %i\n", d, n);
     if (n < min) return stream->status();
-    pos = start + off;
+    pos = start;
     end = start + n;
     return Ok;
 }
