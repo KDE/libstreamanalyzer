@@ -283,6 +283,10 @@ PdfParser::parseOperator() {
         m_error.assign(stream->error());
         return r;
     }
+    
+    if (r == Eof)
+      return r;
+    
     const char *s = start + p;
     lastOperator.assign(s, pos-s);
     if (lastOperator == "TJ" || lastOperator == "Tj") {
