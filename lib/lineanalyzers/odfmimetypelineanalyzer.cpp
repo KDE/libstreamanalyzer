@@ -97,7 +97,7 @@ application/vnd.oasis.opendocument.formula-template  otf
 
     const char *rdftype = NULL;
     if( length >= (35+4) && std::strncmp(data+35, "text", 4) == 0 ) {
-        rdftype = "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#TextDocument";
+        rdftype = "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#PaginatedTextDocument";
     } else if ( length >= (35+12) && std::strncmp(data+35, "presentation", 12) == 0 ) {
         rdftype = "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Presentation";
     } else if ( length >= (35+11) && std::strncmp(data+35, "spreadsheet", 11) == 0 ) {
