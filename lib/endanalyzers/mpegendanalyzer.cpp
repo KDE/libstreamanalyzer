@@ -137,16 +137,16 @@ MpegEndAnalyzer::analyze(AnalysisResult& idx, InputStream* in) {
     if (this->mpeg_version == 2) {
         switch (this->aspect_ratio) {
             case 1:
-                idx.addValue(tempfields["aspect ratio"], "default");
+                idx.addValue(tempfields["aspect ratio"], 1.0);
                 break;
             case 2:
-                idx.addValue(tempfields["aspect ratio"], "4/3");
+                idx.addValue(tempfields["aspect ratio"], 1.33);
                 break;
             case 3:
-                idx.addValue(tempfields["aspect ratio"], "16/9");
+                idx.addValue(tempfields["aspect ratio"], 1.78);
                 break;
             case 4:
-                idx.addValue(tempfields["aspect ratio"], "2.11/1");
+                idx.addValue(tempfields["aspect ratio"], 2.11);
                 break;
         }
     }

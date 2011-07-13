@@ -446,8 +446,9 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
                       codec.width  * codec.sample_aspect_ratio.num,
                       codec.height * codec.sample_aspect_ratio.den,
                       1024*1024);
-            outs << aspectratio.num << ":" << aspectratio.den;
-            ar.addTriplet(streamuri, aspectRatioPropertyName, outs.str());
+            std::ostringstream aspect;
+            aspect << roundf(100.0*float(aspectratio.num)/float(aspectratio.den))/100.0;
+            ar.addTriplet(streamuri, aspectRatioPropertyName, aspect.str());
           }
         }
         if (codec.height) {
