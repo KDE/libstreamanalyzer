@@ -18,7 +18,6 @@
  * Boston, MA 02110-1301, USA.
  */
 #include "pdfparser.h"
-#include <strigi/stringterminatedsubstream.h>
 #include <strigi/gzipinputstream.h>
 #include <strigi/subinputstream.h>
 #include <ctype.h>
@@ -283,10 +282,9 @@ PdfParser::parseOperator() {
         m_error.assign(stream->error());
         return r;
     }
-    
-    if (r == Eof)
-      return r;
-    
+    if (r == Eof) {
+        return r;
+    }
     const char *s = start + p;
     lastOperator.assign(s, pos-s);
     if (lastOperator == "TJ" || lastOperator == "Tj") {
@@ -361,25 +359,20 @@ PdfParser::parseDictionaryOrStream() {
         if (*pos == '\r') pos++;
         if (*pos != '\n') return Error;
         pos++;
-
+        if (length == -1) {
+            // the field Length is required
+            return Error;
+        }
         // read stream until 'endstream'
         int64_t p = bufferStart + pos-start;
         if (p != stream->reset(p)) return Error;
 //        fprintf(stderr, "filter: %s\n", filter.c_str());
 //        fprintf(stderr, "type: %s %i\n", type.c_str(), streamcount);
 //        printf("position: %lli length %i\n", p, length);
-        if (length == -1) {
-            StringTerminatedSubStream sub(stream, "endstream");
-            if (handleSubStream(&sub, type, offset, numberofobjects, hasfilter,
-                    filter) != Eof) {
-                return Error;
-            }
-        } else {
-            SubInputStream sub(stream, length);
-            if (handleSubStream(&sub, type, offset, numberofobjects, hasfilter,
-                    filter) != Eof) {
-                return Error;
-            }
+        SubInputStream sub(stream, length);
+        if (handleSubStream(&sub, type, offset, numberofobjects, hasfilter,
+                filter) != Eof) {
+            return Error;
         }
         // After reading the substream the pointers to the buffer are invalid.
         // Reset the buffer to the current stream position
@@ -390,7 +383,6 @@ PdfParser::parseDictionaryOrStream() {
         if (skipWhitespaceOrComment() != Ok) return Error;
 //        printf("hi %i %.*s\n", pos-start, 10, pos);
         if (skipKeyword("endstream", 9) != Ok) return Error;
-//        printf("endstream\n");
         streamcount++;
     }
 //    printf("endDictionary %p\n", this);
