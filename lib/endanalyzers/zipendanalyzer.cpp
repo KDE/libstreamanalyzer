@@ -60,6 +60,7 @@ ZipEndAnalyzer::analyze(AnalysisResult& idx, InputStream* in) {
                 return 0;
             }
             idx.indexChild(zip.entryInfo().filename, zip.entryInfo().mtime, s);
+            idx.finishIndexChild();
             s = zip.nextEntry();
         }
     }

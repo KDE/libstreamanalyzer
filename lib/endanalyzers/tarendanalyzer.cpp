@@ -61,6 +61,7 @@ TarEndAnalyzer::staticAnalyze(AnalysisResult& idx,
                 return 0;
             }
             idx.indexChild(tar.entryInfo().filename, tar.entryInfo().mtime, s);
+            idx.finishIndexChild();
 
             s = tar.nextEntry();
         }

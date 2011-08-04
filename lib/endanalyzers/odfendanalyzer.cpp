@@ -97,6 +97,7 @@ OdfEndAnalyzer::analyze(AnalysisResult& idx, InputStream* in) {
 	    contentHelper.analyze(idx,s);
 	} else if (zip.entryInfo().filename.substr(0,9) == "Pictures/") {
 	    idx.indexChild(zip.entryInfo().filename, zip.entryInfo().mtime, s);
+            idx.finishIndexChild();
 	}
 	s = zip.nextEntry();
     }

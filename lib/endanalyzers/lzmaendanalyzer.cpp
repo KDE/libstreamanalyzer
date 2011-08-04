@@ -64,6 +64,8 @@ LzmaEndAnalyzer::analyze(AnalysisResult& idx, InputStream* in) {
         if (len > 5 && name.substr(len-5)==".lzma") {
             name = name.substr(0, len-5);
         }
-        return idx.indexChild(name, idx.mTime(), &stream);
+        signed char r = idx.indexChild(name, idx.mTime(), &stream);
+        idx.finishIndexChild();
+        return r;
     }
 }

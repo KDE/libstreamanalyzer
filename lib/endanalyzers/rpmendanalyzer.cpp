@@ -74,6 +74,7 @@ RpmEndAnalyzer::analyze(AnalysisResult& idx, InputStream* in) {
             }
             idx.indexChild(rpm.entryInfo().filename, rpm.entryInfo().mtime,
                            s);
+            idx.finishIndexChild();
             s = rpm.nextEntry();
         }
     }

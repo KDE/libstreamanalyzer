@@ -247,6 +247,7 @@ tryThumbsdbEntry(const string& name, AnalysisResult& ar, InputStream* in) {
     }
     SubInputStream thumb(in, in->size()-12);
     ar.indexChild(name, 0, &thumb);
+    ar.finishIndexChild();
     return true;
 }
 /**
@@ -264,6 +265,7 @@ tryPictures(AnalysisResult& ar, InputStream* in) {
         SubInputStream sub(in, size);
         s << "Pictures/" << pos++;
         ar.indexChild(s.str(), 0, &sub);
+        ar.finishIndexChild();
         const char* dummy;
         while (sub.read(dummy, 1, 0) > 0) {
             // skip to the end
@@ -398,6 +400,7 @@ OleEndAnalyzer::analyze(AnalysisResult& ar, InputStream* in) {
             //    word1Table.assign(getStreamString(s));
             } else {
                 ar.indexChild(name, ole.entryInfo().mtime, s);
+                ar.finishIndexChild();
             }
         }
         s = ole.nextEntry();

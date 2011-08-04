@@ -55,10 +55,12 @@ ArEndAnalyzer::staticAnalyze(AnalysisResult& idx,
     InputStream *s = ar.nextEntry();
     if (s && ar.entryInfo().filename.compare("debian-binary") == 0) {
         idx.indexChild(ar.entryInfo().filename, ar.entryInfo().mtime, s);
+        idx.finishIndexChild();
         s = ar.nextEntry();
     }
     if (s && ar.entryInfo().filename.compare("control.tar.gz") == 0) {
         idx.indexChild(ar.entryInfo().filename, ar.entryInfo().mtime, s);
+        idx.finishIndexChild();
         s = ar.nextEntry();
     }
     if (idx.config().indexArchiveContents()) {
@@ -73,6 +75,7 @@ ArEndAnalyzer::staticAnalyze(AnalysisResult& idx,
                 return 0;
             }
             idx.indexChild(ar.entryInfo().filename, ar.entryInfo().mtime, s);
+            idx.finishIndexChild();
             s = ar.nextEntry();
         }
     }

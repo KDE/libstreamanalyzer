@@ -43,6 +43,7 @@ PdfEndAnalyzer::handle(InputStream* s) {
     ostringstream str;
     str << n++;
     char r = analysisresult->indexChild(str.str(), analysisresult->mTime(), s);
+    analysisresult->finishIndexChild();
     // how do we set the error message in this case?
     return (r) ?Error :Ok;
 }

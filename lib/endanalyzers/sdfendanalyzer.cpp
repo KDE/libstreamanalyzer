@@ -57,7 +57,8 @@ SdfEndAnalyzer::analyze(AnalysisResult& idx, InputStream* in) {
 	moleculeCount++;
 	std::string file = sdf.entryInfo().filename;
 	idx.indexChild(file, idx.mTime(), s);
-	
+        idx.finishIndexChild();
+
 	s = sdf.nextEntry();
     }
     if (moleculeCount)
