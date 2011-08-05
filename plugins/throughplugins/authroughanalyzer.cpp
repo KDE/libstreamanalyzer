@@ -23,7 +23,7 @@
 #include <strigi/analysisresult.h>
 #include <strigi/fieldtypes.h>
 #include <strigi/textutils.h>
-#include "../../lib/rdfnamespaces.h"
+#include "rdfnamespaces.h"
 
 using namespace std;
 using namespace Strigi;
@@ -35,13 +35,13 @@ const string
 void
 AuThroughAnalyzerFactory::registerFields(FieldRegister& reg) {
     lengthField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#duration");
+        NFO"duration");
     sampleRateField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#sampleRate");
+        NFO"sampleRate");
     channelsField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#channels");
+        NFO"channels");
     sampleBitDepthField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/nfo#bitsPerSample");
+        NFO"bitsPerSample");
     sampleDataTypeField = reg.registerField(
         "http://freedesktop.org/standards/xesam/1.0/core#audioSampleDataType");
     typeField = reg.typeField;

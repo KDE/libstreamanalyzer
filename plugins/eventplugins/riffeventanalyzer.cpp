@@ -25,6 +25,7 @@
 #include <strigi/analyzerplugin.h>
 #include <stack>
 #include <iostream>
+#include "rdfnamespaces.h"
 
 namespace Strigi {
     class RegisteredField;
@@ -375,23 +376,23 @@ RiffEventAnalyzer::isReadyWithStream() {
 void
 RiffEventAnalyzerFactory::registerFields(Strigi::FieldRegister& reg) {
     sampleSizeField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/nfo#bitsPerSample");
+        NFO"bitsPerSample");
     sampleRateField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#sampleRate");
+        NFO"sampleRate");
     channelsField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#channels");
+        NFO"channels");
     lengthField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#duration");
+        NFO"duration");
     resolutionHeightField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#height");
+        NFO"height");
     resolutionWidthField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#width");
+        NFO"width");
     frameRateField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#frameRate");
+        NFO"frameRate");
     videoCodecField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#codec");
+        NFO"codec");
     audioCodecField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#codec");
+        NFO"codec");
 
     addField(sampleSizeField);
     addField(sampleRateField);
