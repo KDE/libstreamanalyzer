@@ -156,7 +156,7 @@ const string
   copyrightPropertyName =
     NIE "copyright",
   albumPropertyName =
-    NMM_DRAFT "MusicAlbum",
+    NMM_DRAFT "musicAlbum",
 
   sampleratePropertyName = 
     NFO "sampleRate",
