@@ -290,7 +290,6 @@ ID3EndAnalyzerFactory::registerFields(FieldRegister& r) {
     titleField		= r.registerField(titlePropertyName);
     descriptionField	= r.registerField(NIE "description");
     commentField	= r.registerField(NIE "comment");
-    artistField		= r.registerField(NCO "creator");
     albumField		= r.registerField(NMM_DRAFT "musicAlbum");
     genreField		= r.registerField(NMM_DRAFT "genre");
     composerField	= r.registerField(NMM_DRAFT "composer");
@@ -583,8 +582,12 @@ ID3EndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream* 
 	    if (!found_title && extract_and_trim(buf, 3, 30, s)) {
 		indexable.addValue(factory->titleField, s);
 	    }
-	    if (!found_artist && extract_and_trim(buf, 33, 30, s))
-		indexable.addValue(factory->artistField, s);
+	    if (!found_artist && extract_and_trim(buf, 33, 30, s)) {
+                const string performerUri = indexable.newAnonymousUri();
+                indexable.addValue(factory->performerField, performerUri);
+                indexable.addTriplet(performerUri, typePropertyName, contactClassName);
+                indexable.addTriplet(performerUri, fullnamePropertyName, s);
+            }
 	    if (!found_album && extract_and_trim(buf, 63, 30, s))
 		addStatement(indexable, albumUri, titlePropertyName, s);
 	    if (!found_year && extract_and_trim(buf, 93, 4, s))
