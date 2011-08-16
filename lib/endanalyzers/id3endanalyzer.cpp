@@ -492,8 +492,13 @@ ID3EndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream* 
 		    addStatement(indexable, albumUri, titlePropertyName, value);
 		    found_album = true;
 		} else if (strncmp("TCON", p, 4) == 0) {
-		    indexable.addValue(factory->genreField, value);
-		    found_genre = true;
+            // The Genre is stored as (number)
+            if( value[0] == '(' && value[value.length()-1] == ')' ) {
+                //vHanda: Maybe one should check if all the characters in between are digits
+                int genreIndex = atoi( value.substr( 1, value.length()-1 ).c_str() );
+                indexable.addValue(factory->genreField, genres[ genreIndex ]);
+                found_genre = true;
+            }
 		} else if (strncmp("TLEN", p, 4) == 0) {
 		    indexable.addValue(factory->durationField, value);
 		} else if (strncmp("TEXT", p, 4) == 0) {
