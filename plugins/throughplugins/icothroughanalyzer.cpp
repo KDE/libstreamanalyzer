@@ -44,12 +44,14 @@ IcoThroughAnalyzerFactory::registerFields(FieldRegister& reg) {
         "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#colorDepth");
     colorCountField = reg.registerField(
         "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#colorCount");
+    typeField = reg.typeField;
 
     addField(widthField);
     addField(heightField);
     addField(numberField);
     addField(bitsPerPixelField);
     addField(colorCountField);
+    addField(typeField);
 }
 
 // Analyzer
@@ -143,6 +145,8 @@ IcoThroughAnalyzer::connectInputStream(InputStream* in) {
     // read the data on the 1st icon
     //FIXME: either get rid of this or replace with NIE equivalent
     //analysisResult->addValue( factory->numberField, ico_count );
+
+    analysisResult->addValue( factory->typeField, "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#RasterImage" );
 
     analysisResult->addValue( factory->widthField, icoe_width );
     analysisResult->addValue( factory->heightField, icoe_height );

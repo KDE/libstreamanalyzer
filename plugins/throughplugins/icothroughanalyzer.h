@@ -53,6 +53,7 @@ private:
     const Strigi::RegisteredField* heightField;
     const Strigi::RegisteredField* bitsPerPixelField;
     const Strigi::RegisteredField* colorCountField;
+    const Strigi::RegisteredField* typeField;
 
     const char* name() const {
         return "IcoThroughAnalyzer";
