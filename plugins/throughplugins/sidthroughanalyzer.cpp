@@ -24,6 +24,7 @@
 #include <strigi/strigiconfig.h>
 #include <strigi/analysisresult.h>
 #include <strigi/fieldtypes.h>
+#include "rdfnamespaces.h"
 #include <cstring>
 
 #include <iostream>
@@ -36,15 +37,15 @@ using namespace Strigi;
 void
 SidThroughAnalyzerFactory::registerFields(FieldRegister& reg) {
     titleField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#title");
+        NIE"title");
     artistField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/03/22/nco#creator");
+        NMM_DRAFT"performer");
     trackNumberField = reg.registerField(
-        "http://freedesktop.org/standards/xesam/1.0/core#albumTrackCount");
+        NMM_DRAFT"albumTrackCount");
     versionField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#version");
+        NIE"version");
     copyrightField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#copyright");
+        NIE"copyright");
 
     addField(titleField);
     addField(artistField);
@@ -143,10 +144,10 @@ SidThroughAnalyzer::connectInputStream(InputStream* in) {
 	
     analysisResult->addValue(factory->artistField, artistUri);
     analysisResult->addTriplet(artistUri,
-			       "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-			       "http://www.semanticdesktop.org/ontologies/2007/03/22/nco#Contact");
+			       RDF"type",
+			       NCO"Contact");
     analysisResult->addTriplet(artistUri,
-			       "http://www.semanticdesktop.org/ontologies/2007/03/22/nco#fullname",
+			       NCO"fullname",
 			       artist);
     
     analysisResult->addValue( factory->titleField, title );
