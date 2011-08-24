@@ -95,7 +95,9 @@ CppLineAnalyzer::handleLine(const char* data, uint32_t length) {
             size_t pos2 = include1.find("<",0);
             size_t pos3 = include1.find(">",0);
             if((pos2 != string::npos) && (pos3 != string::npos)){
-                analysisResult->addValue(factory->includeField, include1.substr(1+pos2,((pos3-1)-pos2)));
+                // We cannot use nie:depends here since it has a range of nie:DataObject and the includes cannot be represented as data objects
+                // includes will only be resolved at compile time.
+                //analysisResult->addValue(factory->includeField, include1.substr(1+pos2,((pos3-1)-pos2)));
                 includes++;
             }
             size_t pos4 = include1.find("\"",0);
