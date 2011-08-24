@@ -56,7 +56,7 @@ const string
     discNumberPropertyName(
 	NMM_DRAFT "setNumber"),
     discCountPropertyName(
-	NMM_DRAFT "setCount"),
+	NMM_DRAFT "setSize"),
 
     musicClassName(
 	NMM_DRAFT "MusicPiece"),
