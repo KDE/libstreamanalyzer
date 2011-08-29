@@ -27,6 +27,10 @@
 #include <iostream>
 #include "rdfnamespaces.h"
 
+const std::string
+    videoClassName( NFO "Video"),
+    audioClassName( NFO "Audio");
+
 namespace Strigi {
     class RegisteredField;
     class FieldRegister;
@@ -84,6 +88,7 @@ private:
     const char* name() const {
         return "RiffEventAnalyzer";
     }
+    const Strigi::RegisteredField* typeField;
     const Strigi::RegisteredField* lengthField;
     const Strigi::RegisteredField* resolutionHeightField;
     const Strigi::RegisteredField* resolutionWidthField;
@@ -155,6 +160,12 @@ RiffEventAnalyzer::processStrh() {
         inAudioStream = true;
     }
 
+    // Add the correct type
+    if( inAudioStream )
+        analysisresult->addValue(factory->typeField, audioClassName);
+    else
+        analysisresult->addValue(factory->typeField, videoClassName);
+
     return true;
 }
 const char*
@@ -212,7 +223,7 @@ RiffEventAnalyzer::processFmt() {
     a->addValue(f->sampleRateField, readLittleEndianUInt32(c+4));
     bytes_per_second = readLittleEndianUInt32(c+8);
     a->addValue(f->sampleSizeField, readLittleEndianUInt16(c+14));
-
+    a->addValue(factory->typeField, audioClassName);
     return true;
 }
 void
@@ -375,6 +386,7 @@ RiffEventAnalyzer::isReadyWithStream() {
 }
 void
 RiffEventAnalyzerFactory::registerFields(Strigi::FieldRegister& reg) {
+    typeField = reg.typeField;
     sampleSizeField = reg.registerField(
         NFO"bitsPerSample");
     sampleRateField = reg.registerField(
