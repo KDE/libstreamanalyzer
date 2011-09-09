@@ -14,7 +14,6 @@ set(streamanalyzer_SRCS
 	fnmatch.cpp
 	indexpluginloader.cpp
 	lineeventanalyzer.cpp
-	pdf/pdfparser.cpp
 	query.cpp
 	queryparser.cpp
 	saxeventanalyzer.cpp
@@ -36,7 +35,6 @@ set(streamanalyzer_SRCS
 	endanalyzers/mpegendanalyzer.cpp
 	endanalyzers/odfendanalyzer.cpp
 	endanalyzers/oleendanalyzer.cpp
-	endanalyzers/pdfendanalyzer.cpp
 	endanalyzers/pngendanalyzer.cpp
 	endanalyzers/rpmendanalyzer.cpp
 	endanalyzers/sdfendanalyzer.cpp

@@ -36,7 +36,6 @@
 #include "endanalyzers/oleendanalyzer.h"
 #include "endanalyzers/rpmendanalyzer.h"
 #include "endanalyzers/cpioendanalyzer.h"
-#include "endanalyzers/pdfendanalyzer.h"
 #include "endanalyzers/sdfendanalyzer.h"
 #include "endanalyzers/pngendanalyzer.h"
 #include "endanalyzers/gzipendanalyzer.h"
@@ -326,7 +325,6 @@ StreamAnalyzerPrivate::initializeEndFactories() {
     addFactory(new BmpEndAnalyzerFactory());
     addFactory(new FlacEndAnalyzerFactory());
     addFactory(new ID3EndAnalyzerFactory());
-    addFactory(new PdfEndAnalyzerFactory());
     addFactory(new SdfEndAnalyzerFactory());
     addFactory(new LzmaEndAnalyzerFactory());
 #ifndef _MSC_VER
