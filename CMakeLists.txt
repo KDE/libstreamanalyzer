@@ -79,6 +79,7 @@ endif (NOT CMAKE_USE_PTHREADS_INIT AND NOT CMAKE_USE_WIN32_THREADS_INIT)
 find_package(LibXml2 REQUIRED)
 find_package(Iconv REQUIRED)
 find_package(Boost REQUIRED)
+find_package(Poppler REQUIRED)
 
 find_optional_dep(CLucene ENABLE_CLUCENE CLucene_FOUND "CLucene backend")
 find_optional_dep(CLucene1 ENABLE_CLUCENE_NG CLUCENE1_FOUND "CLucene Version 1+ backend")
