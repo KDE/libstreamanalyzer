@@ -138,6 +138,7 @@ public:
     AnalysisResult* child();
     /**
      * Associate a fragment of text with the file.
+     * Subsequent calls to addText are indexed as separate fragments.
      *
      * @param text    a pointer to a fragment of utf8 encoded text
      * @param length  the length of the fragment
