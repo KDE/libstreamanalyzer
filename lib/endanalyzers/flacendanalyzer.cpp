@@ -103,6 +103,8 @@ FlacEndAnalyzerFactory::registerFields(FieldRegister& r) {
     fields["copyright"] = r.registerField("http://www.semanticdesktop.org/ontologies/2007/01/19/nie#copyright");
     fields["license"] = r.registerField("http://www.semanticdesktop.org/ontologies/2007/01/19/nie#license");
 
+    fields["discnumber"] = r.registerField(discNumberPropertyName);
+
     typeField = r.typeField;
 }
 
@@ -245,8 +247,6 @@ FlacEndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream*
 			addStatement(indexable, albumUri, albumGainPropertyName, value);
 		    } else if(name=="replaygain_album_peak") {
 			addStatement(indexable, albumUri, albumPeakGainPropertyName, value);
-		    } else if(name=="discno") {
-			addStatement(indexable, albumUri, discNumberPropertyName, value);
 		    } else if(name=="composer") {
 			const string composerUri( indexable.newAnonymousUri() );
 
