@@ -49,7 +49,6 @@ void
 OggThroughAnalyzerFactory::registerFields(FieldRegister& r) {
     fields["title"] = r.registerField(titlePropertyName);
     albumField = r.registerField(NMM_DRAFT "musicAlbum");
-    artistField = r.registerField("http://www.semanticdesktop.org/ontologies/2007/03/22/nco#creator");
     fields["genre"] = r.registerField(NMM_DRAFT "genre");
     fields["codec"] = r.registerField("http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#codec");
     composerField = r.registerField(NMM_DRAFT "composer");
@@ -125,6 +124,12 @@ OggThroughAnalyzer::connectInputStream(InputStream* in) {
         return in;
     }
     uint32_t nfields = readLittleEndianUInt32(p2);
+
+    // in Vorbis comments the "artist" field is used for the performer in modern music
+    // but for the composer in calssical music. Thus, we cache both and make the decision
+    // at the end
+    string artist, performer;
+
     // read all the comments
     p2 += 4;
     for (uint32_t i = 0; p2 < end && i < nfields; ++i) {
@@ -148,12 +153,8 @@ OggThroughAnalyzer::connectInputStream(InputStream* in) {
                 if (iter != factory->fields.end()) {
                     indexable->addValue(iter->second, value);
                 } else if(name=="artist") {
-		    string artistUri = indexable->newAnonymousUri();
-		
-		    indexable->addValue(factory->artistField, artistUri);
-		    indexable->addTriplet(artistUri, typePropertyName, contactClassName);
-		    indexable->addTriplet(artistUri, fullnamePropertyName, value);
-		} else if(name=="album") {
+                    artist = value;
+                } else if(name=="album") {
 		    string albumUri = indexable->newAnonymousUri();
 		    
 		    indexable->addValue(factory->albumField, albumUri);
@@ -166,11 +167,7 @@ OggThroughAnalyzer::connectInputStream(InputStream* in) {
 		    indexable->addTriplet(composerUri, typePropertyName, contactClassName);
 		    indexable->addTriplet(composerUri, fullnamePropertyName, value);
 		} else if(name=="performer") {
-		    string performerUri = indexable->newAnonymousUri();
-
-		    indexable->addValue(factory->performerField, performerUri);
-		    indexable->addTriplet(performerUri, typePropertyName, contactClassName);
-		    indexable->addTriplet(performerUri, fullnamePropertyName, value);
+                    performer = value;
 		}
             }
         } else {
@@ -179,6 +176,37 @@ OggThroughAnalyzer::connectInputStream(InputStream* in) {
         }
         p2 += size;
     }
+
+    // we now decide how to store the artist and performer as suggested by the Vorbis comments spec
+    const Strigi::RegisteredField* artistField = 0;
+    const Strigi::RegisteredField* performerField = 0;
+    if (!artist.empty()) {
+        if (!performer.empty()) {
+            artistField = factory->composerField;
+            performerField = factory->performerField;
+        }
+        else {
+            artistField = factory->performerField;
+        }
+    }
+    else if (!performer.empty()) {
+        performerField = factory->performerField;
+    }
+    if (artistField) {
+        const string artistUri( indexable->newAnonymousUri() );
+
+        indexable->addValue(artistField, artistUri);
+        indexable->addTriplet(artistUri, typePropertyName, contactClassName);
+        indexable->addTriplet(artistUri, fullnamePropertyName, artist);
+    }
+    if (performerField) {
+        const string performerUri( indexable->newAnonymousUri() );
+
+        indexable->addValue(performerField, performerUri);
+        indexable->addTriplet(performerUri, typePropertyName, contactClassName);
+        indexable->addTriplet(performerUri, fullnamePropertyName, performer);
+    }
+
     // set the "codec" value
     indexable->addValue(factory->fields.find("codec")->second, "Ogg/Vorbis");
     indexable->addValue(factory->fields.find("type")->second, musicClassName);
