@@ -55,6 +55,7 @@ private:
     const Strigi::RegisteredField* genreField;
     const Strigi::RegisteredField* copyrightField;
     const Strigi::RegisteredField* trackNumberField;
+    const Strigi::RegisteredField* discNumberField;
     const Strigi::RegisteredField* durationField;
     const Strigi::RegisteredField* typeField;
     const Strigi::RegisteredField* bitrateField;

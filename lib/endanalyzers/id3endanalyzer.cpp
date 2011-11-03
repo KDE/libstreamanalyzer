@@ -299,6 +299,7 @@ ID3EndAnalyzerFactory::registerFields(FieldRegister& r) {
     languageField	= r.registerField(NIE "language");
     copyrightField	= r.registerField(NIE "copyright");
     trackNumberField	= r.registerField(NMM_DRAFT "trackNumber");
+    discNumberField	= r.registerField(discNumberPropertyName);
     durationField	= r.registerField(NFO "duration");
     typeField		= r.typeField;
 
@@ -534,9 +535,7 @@ ID3EndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream* 
 		    int dnum;
 		    ins >> dnum;
 		    if (!ins.fail()) {
-			ostringstream out;
-			out << dnum;
-			addStatement(indexable, albumUri, discNumberPropertyName, out.str());
+			indexable.addValue(factory->discNumberField, dnum);
 			ins.ignore(10,'/');
 			int dcount;
 			ins >> dcount;
