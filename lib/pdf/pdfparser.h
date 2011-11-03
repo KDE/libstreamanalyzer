@@ -20,8 +20,20 @@
 #ifndef PDFPARSER_H
 #define PDFPARSER_H
 
+#include "unicodemap.h"
+#include "pdfobjects.h"
+#include "pdfreader.h"
 #include <strigi/streambase.h>
+#include <vector>
+#include <list>
+#include <map>
+#include <set>
 
+/**
+ * PdfParser parses PDF files and sends all text occurring in the file
+ * to texthandler in utf8 format. Streams are passed to streamhandler.
+ * The PDF metadata can be accessed after parsing.
+ */
 class PdfParser {
 public:
     class StreamHandler {
@@ -41,69 +53,68 @@ public:
     class DefaultTextHandler : public TextHandler {
         Strigi::StreamStatus handle(const std::string& s);
     };
+
+public:
+    PdfParser();
+    ~PdfParser();
+    
+    /**
+     * Parse PDF file
+     */
+    Strigi::StreamStatus parse(Strigi::StreamBase<char>* stream);
+    
+    /**
+     * Return the metadata dictionary found in the Info entry of the trailer
+     * Possible keys include Title, Author, Subject, Keywords, Creator, Producer,
+     * CreationDate, ModDate, Trapped.
+     */     
+    std::map<std::string, std::string> getMetadata();
+    
+    /**
+     * Return the error description
+     */
+    const std::string& error() { return bodyReader.error(); }
+    
+    /**
+     * Set handlers
+     */    
+    void setStreamHandler(StreamHandler* handler) { streamhandler = handler; }
+    void setTextHandler(TextHandler* handler) { texthandler = handler; }    
+    
 private:
-    const char* start;
-    const char* end;
-    const char* pos;
-    int64_t bufferStart;
-    Strigi::StreamBase<char>* stream;
-    std::string m_error;
-
-    // parsed objects
-    double lastNumber;
-    std::string lastName;
-    std::string lastOperator;
-    std::string lastString;
-    void* lastObject;
-
+    PdfBodyReader bodyReader;
+    
     // event handlers
     StreamHandler* streamhandler;
     TextHandler* texthandler;
 
-    Strigi::StreamStatus read(int32_t min, int32_t max);
-    void forwardStream(Strigi::StreamBase<char>* s);
-    Strigi::StreamStatus checkForData(int32_t m);
-    bool isInString(char c, const char* s, int32_t n);
-    Strigi::StreamStatus skipFromString(const char*str, int32_t n);
-    Strigi::StreamStatus skipNotFromString(const char*str, int32_t n);
-    Strigi::StreamStatus skipWhitespaceOrComment();
-    Strigi::StreamStatus skipWhitespace();
-    Strigi::StreamStatus skipKeyword(const char* str, int32_t len);
-    Strigi::StreamStatus skipXRef();
-    Strigi::StreamStatus skipTrailer();
-    Strigi::StreamStatus skipXChars();
-    Strigi::StreamStatus skipDigits();
-    Strigi::StreamStatus skipStartXRef();
-    Strigi::StreamStatus skipNumber();
-    Strigi::StreamStatus parseObjectStreamObject(int nestDepth);
-    Strigi::StreamStatus parseContentStreamObject();
-    Strigi::StreamStatus parseComment();
-    Strigi::StreamStatus parseBoolean();
-    Strigi::StreamStatus parseNumber();
-    Strigi::StreamStatus parseNumberOrIndirectObject();
-    Strigi::StreamStatus parseLiteralString();
-    Strigi::StreamStatus parseHexString();
-    Strigi::StreamStatus parseName();
-    Strigi::StreamStatus parseOperator();
-    Strigi::StreamStatus parseDictionaryOrStream();
-    Strigi::StreamStatus parseArray(int nestDepth);
-    Strigi::StreamStatus parseNull();
-    Strigi::StreamStatus parseObjectStreamObjectDef();
-
-    Strigi::StreamStatus handleSubStream(Strigi::StreamBase<char>* s,
-        const std::string& type, int32_t offset, int32_t n);
-    Strigi::StreamStatus handleSubStream(Strigi::StreamBase<char>* s,
-        const std::string& type, int32_t offset, int32_t n, bool hasfilter,
-        const std::string& filter);
-    Strigi::StreamStatus parseObjectStream(Strigi::StreamBase<char>*,
-        int32_t offset, int32_t n);
-    Strigi::StreamStatus parseContentStream(Strigi::StreamBase<char>*);
-public:
-    PdfParser();
-    Strigi::StreamStatus parse(Strigi::StreamBase<char>* s);
-    const std::string& error() { return m_error; }
-    void setStreamHandler(StreamHandler* handler) { streamhandler = handler; }
-    void setTextHandler(TextHandler* handler) { texthandler = handler; }
+    std::set<PdfReference> parsed;    
+    std::map<PdfReference, PdfDictionary*> dictionaries;    
+    std::list<PdfDictionary*> pageDictionaries;
+    std::map<PdfReference, std::list<std::string> > textCommands;
+    std::map<PdfReference, std::list<PdfArray> > bfCharCommands;
+    std::map<PdfReference, std::list<PdfArray> > bfRangeCommands;
+    std::map<PdfReference, UnicodeMap> unicodeMaps;
+    UnicodeMap defaultMap;
+    
+    void commitTexts(bool force = false);
+    bool processTextCommands(std::list<PdfReference> contentRefs, PdfDictionary* resources, bool force);
+    void saveTextCommand(PdfObject* cmd);
+    bool saveDictIfNeeded(PdfDictionary* dict);
+    PdfDictionary* getDictionary(PdfObject* refOrDict);
+    UnicodeMap* getUnicodeMap(std::string& fontName, PdfDictionary& page);
+    bool createUnicodeMap(PdfReference& fontRef);
+    void processToUnicodeCommands(PdfReference& ref, UnicodeMap& uMap);
+    void processBfCharCommand(PdfArray& command, UnicodeMap& uMap);
+    void processBfRangeCommand(PdfArray& command, UnicodeMap& uMap);    
+    std::list<PdfReference> toRefList(PdfObject* contentRefs);    
+    size_t getTextCommandsMemoryUsage();
+    size_t getDictionariesMemoryUsage();
+   
+    Strigi::StreamStatus handleStream(Strigi::StreamBase<char>* s, PdfDictionary* dict);    
+    Strigi::StreamStatus handleObjectStream(Strigi::StreamBase<char>* s, PdfDictionary* infoDict);
+    Strigi::StreamStatus handleContentStream(Strigi::StreamBase<char>* s);
+    Strigi::StreamStatus forwardStream(Strigi::StreamBase<char>* s);
 };
 
 #endif

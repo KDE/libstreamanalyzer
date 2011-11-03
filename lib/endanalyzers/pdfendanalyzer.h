@@ -39,6 +39,7 @@ private:
     const char* name() const { return "PdfEndAnalyzer"; }
     Strigi::StreamStatus handle(Strigi::InputStream* s);
     Strigi::StreamStatus handle(const std::string& s);
+    std::string toXsdDate(const std::string& pdfDate);
 public:
     PdfEndAnalyzer(const PdfEndAnalyzerFactory* f);
 };
@@ -47,6 +48,12 @@ class PdfEndAnalyzerFactory : public Strigi::StreamEndAnalyzerFactory {
 friend class PdfEndAnalyzer;
 private:
     const Strigi::RegisteredField* typeField;
+    const Strigi::RegisteredField* titleField;
+    const Strigi::RegisteredField* subjectField;
+    const Strigi::RegisteredField* creatorField;
+    const Strigi::RegisteredField* keywordField;
+    const Strigi::RegisteredField* contentCreatedField;
+    const Strigi::RegisteredField* contentLastModifiedField;
 public:
     const char* name() const {
         return "PdfEndAnalyzer";
