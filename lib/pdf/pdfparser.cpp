@@ -19,585 +19,572 @@
  */
 #include "pdfparser.h"
 #include <strigi/gzipinputstream.h>
-#include <typeinfo>
-#include <iostream>
+#include <strigi/subinputstream.h>
+#include <ctype.h>
 
 using namespace std;
 using namespace Strigi;
 
-PdfParser::PdfParser() : streamhandler(0), texthandler(0) {}
+int32_t streamcount = 0;
 
-PdfParser::~PdfParser() {
-    while (!dictionaries.empty()) {
-        PdfDictionary* dict =  dictionaries.begin()->second;
-        delete dictionaries.begin()->second;
-        dictionaries.erase(dictionaries.begin());    
-    }
-    while (!pageDictionaries.empty()) {        
-        delete pageDictionaries.front();
-        pageDictionaries.pop_front();
-    }
+PdfParser::PdfParser() :streamhandler(0), texthandler(0) {
 }
 
-/**-------------------------------------------------------------------------
- * Parse the PDF stream.
- */
 StreamStatus
-PdfParser::parse(StreamBase<char>* s) {
-    const int64_t TEXT_MEMORY_LIMIT = 2000000;
-    bodyReader.setStream(s);    
-    StreamStatus r;
-    while ((r = bodyReader.parseNextObject()) != Error) { 
-        parsed.insert(bodyReader.objectRef);
-        //cout << "Object index "<<bodyReader.objectRef.index()<<endl;
-        if (bodyReader.lastDictionary) {            
-            PdfDictionary* dict = bodyReader.lastDictionary;
-            if (saveDictIfNeeded(dict)) {
-                bodyReader.lastDictionary = 0;  
-            }
-            if (bodyReader.nextStream) {
-                if (handleStream(bodyReader.nextStream, dict) != Eof) {
-                    cerr << "Error parsing stream: " <<bodyReader.nextStream->error()<<endl;                    
-                    break;
-                }   
-            }
-        }
-        if (parsed.size() % 200 == 0) {
-            if (getTextCommandsMemoryUsage() > TEXT_MEMORY_LIMIT) {
-                commitTexts(true);
-            } else commitTexts();
-        }
-        if (r == Eof) break;
+PdfParser::read(int32_t min, int32_t max) {
+    int32_t off = (int32_t)(pos-start);
+    int32_t d = (int32_t)(stream->position() - bufferStart);
+    min += d;
+    if (max > 0) max += d;
+    stream->reset(bufferStart);
+    int32_t n = stream->read(start, min, max);
+//    printf("objstart %i %i\n", d, n);
+    if (n < min) return stream->status();
+    pos = start + off;
+    end = start + n;
+    return Ok;
+}
+StreamStatus
+PdfParser::checkForData(int32_t m) {
+    StreamStatus n = Ok;
+    if (end - pos < m) {
+        n = read(m - (int32_t) (end-pos), 0);
     }
+//    fprintf(stderr, "checkForData %i\n", n);
+    return n;
+}
+
+bool
+PdfParser::isInString(char c, const char* s, int32_t n) {
+    for (int i=0; i<n; ++i) {
+        if (s[i] == c) return true;
+    }
+    return false;
+}
+StreamStatus
+PdfParser::skipDigits() {
+    StreamStatus s;
+    do {
+        if ((s = checkForData(1)) != Ok) return s;
+        while (pos < end && isdigit(*pos)) pos++;
+    } while (pos == end);
+    return Ok;
+}
+StreamStatus
+PdfParser::skipXChars() {
+    StreamStatus s;
+    do {
+        if ((s = checkForData(1)) != Ok) return s;
+        while (pos < end && isxdigit(*pos)) pos++;
+    } while (pos == end);
+    return Ok;
+}
+StreamStatus
+PdfParser::skipFromString(const char*str, int32_t n) {
+    StreamStatus s;
+    do {
+        if ((s = checkForData(1)) != Ok) return s;
+        while (pos < end && isInString(*pos, str, n)) pos++;
+    } while (pos == end);
+    return Ok;
+}
+StreamStatus
+PdfParser::skipNotFromString(const char*str, int32_t n) {
+    StreamStatus s;
+    do {
+        if ((s = checkForData(1)) != Ok) return s;
+        while (pos < end && !isInString(*pos, str, n)) pos++;
+    } while (pos == end);
+    return Ok;
+}
+StreamStatus
+PdfParser::skipKeyword(const char* str, int32_t len) {
+    StreamStatus s = checkForData(len);
+    if (s != Ok) {
+            m_error.assign("Premature end of stream.");
+            return Error;
+    }
+//    printf("skipKeyword %s '%.*s'\n", str, (len>end-pos)?end-pos:len, pos);
+    if (strncmp(pos, str, len) != 0) {
+            m_error.assign("Keyword ");
+            m_error.append(str, len);
+            m_error.append(" not found.");
+            return Error;
+    }
+    pos += len;
+    return Ok;
+}
+/**
+ * Skip whitespace in the stream. Return amount of whitespace skipped.
+ * After calling this function the position in the stream is after the
+ * whitespace. Skip characters from \t\n\f\r\t and space.
+ **/
+StreamStatus
+PdfParser::skipWhitespace() {
+    StreamStatus s;
+    do {
+        if ((s = checkForData(1)) != Ok) return s;
+        while (pos < end && isspace(*pos)) pos++;
+    } while (pos == end);
+    return Ok;
+}
+StreamStatus
+PdfParser::parseComment() {
+    if (*pos != '%') return Ok;
+    pos++; // skip '%'
+    return skipNotFromString("\r\n", 2);
+}
+StreamStatus
+PdfParser::skipWhitespaceOrComment() {
+//    printf("skipWhitespaceOrComment\n");
+    int64_t o;
+    int64_t no = pos - start;
+    StreamStatus s;
+    do {
+        o = no;
+        if ((s = skipWhitespace()) != Ok) return s;
+        if ((s = parseComment()) != Ok) return s;
+        no = pos - start;
+    } while (o != no);
+    return Ok;
+}
+StreamStatus
+PdfParser::parseBoolean() {
+    return (*pos == 't') ?skipKeyword("true", 4) :skipKeyword("false", 5);
+}
+StreamStatus
+PdfParser::skipNumber() {
+    char ch = *pos;
+    if (ch == '+' || ch == '-') pos++;
+    StreamStatus n = skipDigits();
+    if (n != Ok) return n;
+    if (pos < end && *pos == '.') {
+        pos++;
+        n = skipDigits();
+    }
+    return n;
+}
+// - number : [+-]?\d+(.\d+)?
+StreamStatus
+PdfParser::parseNumber() {
+    int64_t p = pos - start;
+    char ch = *pos;
+    if (ch == '+' || ch == '-') pos++;
+    StreamStatus n = skipDigits();
+    if (n != Ok) return n;
+    if (pos < end && *pos == '.') {
+        // a '.' so this is a float
+        pos++;
+        n = skipDigits();
+        const char *s = start + p;
+        lastNumber = strtod(s, 0);
+    } else {
+        // no dot so this is a long
+        const char *s = start + p;
+        lastNumber = (double)strtol(s, 0, 10);
+    }
+    // parse a number
+    lastObject = &lastNumber;
+    if (lastNumber > 300 || lastNumber < -300) lastString.append(" ", 1);
+    return n;
+}
+StreamStatus
+PdfParser::parseNumberOrIndirectObject() {
+//    printf("parseNumberOrIndirectObject\n");
+    StreamStatus s = parseNumber();
+    if (s != Ok) return s;
+    s = skipWhitespace();
+    if (s != Ok) return s;
+    // now we must check if this is an indirect object
+    if (isdigit(*pos)) {
+        //const char*ss= start;
+        int64_t p = pos - start;
+        s = parseNumber();
+        if (s != Ok) return s;
+        s = skipWhitespace();
+        if (s != Ok) return s;
+        if (*pos == 'R') {
+            pos++;
+            lastObject = 0;
+        } else {
+            // set the position in front of the previous number
+            // because it is a separate number and not part of a reference
+            pos = start + p;
+        }
+    }
+//    printf("<parseNumberOrIndirectObject\n");
+    return Ok;
+}
+StreamStatus
+PdfParser::parseLiteralString() {
+    StreamStatus s;
+    int par = 1;
+    pos++;
+    bool escape = false;
+    do {
+        if ((s = checkForData(1)) != Ok) return s;
+        while (pos < end) {
+            char c = *pos;
+            if (escape) {
+                escape = false;
+            } else {
+                if (c == ')') {
+                    if (--par == 0) {
+                        pos++;
+                        return Ok;
+                    }
+                    lastString += c;
+                } else if (c == '(') {
+                    lastString += c;
+                    par++;
+                } else if (c == '\\') {
+                    escape = true;
+                } else if (isascii(*pos)) {
+                    lastString += c;
+                }
+            }
+            pos++;
+        }
+    } while (1);
+    return Ok;
+}
+StreamStatus
+PdfParser::parseHexString() {
+    skipKeyword("<", 1);
+//    fprintf(stderr, "parseHexString\n");
+    if (skipXChars() != Ok) {
+//         fprintf(stderr, "not a hex string\n");
+         m_error.assign("invalid hexstring.");
+         return Error;
+    }
+//    printf("parseHexString ok\n");
+    return skipKeyword(">", 1);
+}
+StreamStatus
+PdfParser::parseName() {
+//    printf("parseName %.*s\n", (10>end-pos)?end-pos:10, pos);
+    pos++;
+    int64_t p = pos - start;
+    StreamStatus r = skipNotFromString("()<>[]{}/%\t\n\f\r ", 16);
     if (r == Error) {
-        cerr << "Error parsing Pdf file: "<<bodyReader.error()<<endl;        
+        m_error.assign(stream->error());
+        return r;
     }
-    //cout << "Parsing finished"<<endl;
-    cout << "Memory used by dictionaries: " << getDictionariesMemoryUsage()<<endl;
-    commitTexts(true);  
+    const char *s = start + p;
+    lastName.assign(s, pos-s);
+    lastObject = &lastName;
     return r;
 }
-
-/**-------------------------------------------------------------------------
- * Convert the metadata dictionary to map<string, string>. 
- */
-map<string, string>
-PdfParser::getMetadata() {
-    map<string, string> metadata;
-    if (!bodyReader.trailer) return metadata;
-    PdfDictionary* infoDict = dynamic_cast<PdfDictionary*> (bodyReader.trailer->get("Info"));
-    if (!infoDict) return metadata;
-    PdfDictionary::iterator it;
-    for (it = infoDict->begin(); it != infoDict->end(); it++) {
-        if (typeid(*(*it).second) != typeid(PdfString)) continue;
-        const PdfName& key = (*it).first;
-        PdfString& val = *(PdfString*) (*it).second;
-        metadata[key] = val;
-    }
-    return metadata;
-}
-
-/**-------------------------------------------------------------------------
- * Convert text strings to unicode and send them to texthandler. If force is
- * false, the method will stop if no UnicodeMap can be found for a fonts.
- * If force = true, defaultMap (only ascii chars) is used if necessary. 
- * Content streams are handled in the order they appear on a page, but the
- * order of pages is arbitrary.
- */
-void
-PdfParser::commitTexts(bool force) {
-    if (!texthandler) return;
-    //cout << "Commit texts, force = "<<force<<endl;
-    while (!pageDictionaries.empty()) {
-        PdfDictionary* page = pageDictionaries.front();
-        PdfDictionary* resources = getDictionary(page->get("Resources"));
-        if (!resources) {
-            //cerr << "Resources dict not found"<<endl;
-            if (!force) return;
-        }
-        PdfObject* contents = page->get("Contents");
-        if (!contents) {
-            //cerr << "Contents not found not found"<<endl;
-            if(force) continue;
-            else return;
-        }
-        if (!processTextCommands(toRefList(contents), resources, force)) {
-            return;
-        }
-        // All text from the page processed
-        delete page;
-        pageDictionaries.pop_front();        
-    }
-}
-
-/**-------------------------------------------------------------------------
- * Process the given text commands. Returns false if not all texts strings have
- * been sent to the text handler, true otherwise. If force is true, returns
- * true always. If force is true, resources can be 0.
- */
-
-bool
-PdfParser::processTextCommands(list<PdfReference> contentRefs, PdfDictionary* resources, bool force) {
-    UnicodeMap* uMap = &defaultMap;
-    string textToHandler;
-    while(!contentRefs.empty()) {
-        PdfReference& ref = contentRefs.front();
-        if (parsed.count(ref) == 0) {
-            //cerr << "Stream "<<ref.toString()<<" not yet parsed."<<endl;
-            if (force) {
-                contentRefs.pop_front();
-                continue;
-            }
-            else return false;
-        }
-        list<string>& cmds = textCommands[ref];
-        //cout << cmds.size()<<" commands from stream "<<ref.toString()<<endl;
-        while (!cmds.empty()) {
-            string& command = cmds.front();
-            if (*command.rbegin() == 'f') {
-                // This is a font name                   
-                // Remove the 'f' marker from the end
-                string fontName = command.substr(0, command.length()-1);
-                if (resources) {
-                    uMap = getUnicodeMap(fontName, *resources);
-                    if (!uMap) {
-                        // If force is false, try again later
-                        if (force) uMap = &defaultMap;
-                        else return false;
-                    }
-                }
-            } else {
-                // This is a text string
-                // Remove the 's' marker from the end
-                command.resize(command.length()-1);                    
-                if (!textToHandler.empty()) {
-                    size_t len = textToHandler.length();
-                    // Remove hyphen from the end if present
-                    if (textToHandler[len-1] == '-') {                            
-                        textToHandler.resize(len-1);
-                    } else {
-                        texthandler->handle(textToHandler);
-                        textToHandler.clear();
-                    }
-                }
-                textToHandler += uMap->convert(command);
-            }
-            if (!textToHandler.empty()) {
-                
-            }
-            // Command processed successfully
-            cmds.pop_front();
-        }
-        // All commands from the content stream have been processed
-        textCommands[ref].clear();
-        contentRefs.pop_front();
-    }
-    // If a page ends with a hyphenated word this check is needed
-    if (!textToHandler.empty()) {
-        texthandler->handle(textToHandler);            
-    }
-    return true;
-}
-
-/**-------------------------------------------------------------------------
- * Save the dictionary to dictionaries if it can potentially be one of
- * the following:
- * - Page dictionary
- * - the dictionary corresponding to the "Font" key of a page dict
- * - Resources dictionary
- * - Font dictionary
- * - Encoding dictionary
- * - Metadata dictionary (corresponding to the "Info" key of the trailer
- */
-bool 
-PdfParser::saveDictIfNeeded(PdfDictionary* dict) {    
-    PdfName* type = dynamic_cast<PdfName*> (dict->get("Type"));    
-    if (type && *type == "Page") {
-        // Save pages separately
-        pageDictionaries.push_back(dict);        
-        return true;
-    }
-    // Filter out some uninteresting dictionaries
-    if (type && !(*type == "Font" || *type == "Encoding")) {        
-        return false;
-    }
-    if (!type) {
-        PdfDictionary::iterator it;
-        for (it = dict->begin(); it != dict->end(); it++) {
-            const PdfName& key = (*it).first;
-            // Filter out content stream, name and number tree dicts.
-            // P, D and Height entries appear in various kinds of dicts that we don't want
-            if (key == "Length" || key == "Limits" || key == "P" || key == "D" || key == "Height") {
-                return false;
-            }
-        }
-    }
-    dictionaries[bodyReader.objectRef] = dict;
-    //cout << "Save dict: "<<dict->toString()<<endl;
-    return true;
-}
-
-/**-------------------------------------------------------------------------
- * This method returns, depending on the type of argument:
- * - if refOrDict is a PdfDictionary, return it as such
- * - if refOrDict is a PdfReference, look for a parsed
- *   dictionary corresponding to the reference. Return the
- *   dictionary or 0 if not found
- * - else return 0
- */
-PdfDictionary*
-PdfParser::getDictionary(PdfObject* refOrDict) {
-    if (!refOrDict) return 0;
-    if (typeid(*refOrDict) == typeid(PdfDictionary)) {
-        return (PdfDictionary*) refOrDict;
-    }
-    PdfReference* ref = dynamic_cast<PdfReference*> (refOrDict);
-    if (!ref || dictionaries.count(*ref) == 0) return 0;
-    return dictionaries[*ref];
-}
-
-/**-------------------------------------------------------------------------
- * Use the resources dict to determine the object index of the font dict
- * corresponding to FontName. If a UnicodeMap for the font doesn't exist,
- * call createUnicodeMap. Return 0 if all the needed data has not yet been
- * parsed.
- */
-UnicodeMap*
-PdfParser::getUnicodeMap(string& fontName, PdfDictionary& resources) {    
-    // Now look for a "Font" key, the value of which is a dictionary that
-    // associates font names to font objects
-    PdfDictionary* fontNameDict = getDictionary(resources.get("Font"));
-    if (!fontNameDict) {
-        //cerr << "Font name dictionary cannot be found!"<<endl;
-        return 0;
-    }
-    PdfName key;
-    key.assign(fontName);
-    PdfReference* fontRef = dynamic_cast<PdfReference*> (fontNameDict->get(key));
-    if (!fontRef) {        
-        cerr << "No font for font name "<<fontName<<endl;;
-        return 0;
-    }    
-    if (unicodeMaps.count(*fontRef) == 0 && !createUnicodeMap(*fontRef)) {        
-        return 0;
-    }
-    return &unicodeMaps[*fontRef];
-}
-
-/**-------------------------------------------------------------------------
- * Creates a unicode map for a font with a given object index and saves it to
- * unicodeMaps. Returns true if a map was created, false otherwise.
- */
-bool
-PdfParser::createUnicodeMap(PdfReference& fontRef) { 
-    PdfDictionary* font = getDictionary(&fontRef);
-    if (!font) {
-        //fprintf(stderr, "Font %s not found\n", fontRef.toString().c_str());
-        return false;
-    }
-
-    PdfName key;
-    PdfReference* ref;
-    
-    // See if the font has a ToUnicode CMap associated to it
-    if (font->count(key.assign("ToUnicode")) != 0) {        
-        ref = dynamic_cast<PdfReference*> ((*font)[key]);
-        if (ref) {
-            UnicodeMap& uMap = unicodeMaps[fontRef];
-            processToUnicodeCommands(*ref, uMap);
-            return true;
-        }
-    }
-    // Otherwise look for an encoding    
-    PdfObject* encodingValue = font->get("Encoding");
-    if (!encodingValue) {
-        //cerr << "No encoding entry in font "<<fontRef.toString()<<endl;
-        unicodeMaps[fontRef];
-        return true;
-    }
-    if (typeid(*encodingValue) == typeid(PdfName)) {  
-        // one of the standard encondings        
-        //printf("\nEncoding: %s\n", encodingValue->toString().c_str());
-        UnicodeMap& uMap = unicodeMaps[fontRef];
-        uMap.setBaseEncoding(*(PdfName*) encodingValue);
-        return true;
-    } 
-    // An encoding dictionary. Look for BaseEncoding and Differences keys
-    PdfDictionary* encodingDict = getDictionary(encodingValue);
-    if (!encodingDict) {
-        //cerr << "Encoding dict not found"<<endl;
-        return false;
-    }
-    UnicodeMap& uMap = unicodeMaps[fontRef];
-    if (encodingDict->count(key.assign("BaseEncoding")) == 0) {        
-        uMap.setBaseEncoding(UnicodeMap::Standard);
-    } else {
-        //cout << "Base encoding: "<<(*(PdfName*) (*encodingDict)[key]))<<endl;
-        uMap.setBaseEncoding(*(PdfName*) (*encodingDict)[key]);   
-    }
-    if (encodingDict->count(key.assign("Differences"))) {
-        //cout <<"Differences found"<<endl;
-        PdfArray* differences = dynamic_cast<PdfArray*> ((*encodingDict)[key]);
-        if (differences) {
-            uMap.addDifferences((PdfArray*) differences);
-        } 
-    }
-        
-    return true;  
-}
-
-/**-------------------------------------------------------------------------
- * Go through the bfChar and bfRange commands in the ToUnicode stream
- * corresponding to the given object index. The ranges are saved to the
- * uMap
- */
-void
-PdfParser::processToUnicodeCommands(PdfReference& ref, UnicodeMap& uMap) {
-    list<PdfArray>& charCommands = bfCharCommands[ref];
-    list<PdfArray>& rangeCommands = bfRangeCommands[ref];
-    list<PdfArray>::iterator it;
-    for(it = charCommands.begin(); it != charCommands.end(); it++) {
-        processBfCharCommand(*it, uMap);
-    }
-    for(it = rangeCommands.begin(); it != rangeCommands.end(); it++) {
-        processBfRangeCommand(*it, uMap);
-    }
-}
-void
-PdfParser::processBfCharCommand(PdfArray& command, UnicodeMap& uMap) {    
-    if (command.size() % 2 != 0) {
-        cerr << "Wrong number of charcodes in bfchar list!"<<endl;
-        return;
-    }
-    for (PdfArray::iterator it = command.begin(); it != command.end(); it++) {
-        PdfString* srcChar = dynamic_cast<PdfString*> (*(it++));            
-        PdfString* dstChar = dynamic_cast<PdfString*> (*it);
-        if (!srcChar || !dstChar) return;
-        uMap.addChar(*srcChar, *dstChar);            
-    }
-} 
-void
-PdfParser::processBfRangeCommand(PdfArray& command, UnicodeMap& uMap) { 
-    if (command.size() % 3 != 0) {
-        cerr << "Wrong number of arguments for bfrange!"<<endl;
-        return;
-    }
-    for (PdfArray::iterator it = command.begin(); it != command.end(); it++) {
-        PdfString* srcStart = dynamic_cast<PdfString*> (*(it++));
-        PdfString* srcEnd = dynamic_cast<PdfString*> (*(it++));
-        if (!srcStart || !srcEnd) return;
-        if (typeid(**it) == typeid(PdfString)) {
-            PdfString* dstStart = (PdfString*) *it;
-            uMap.addRange(*srcStart, *srcEnd, *dstStart);
-        } else {
-            PdfArray* dstCodes = dynamic_cast<PdfArray*> (*it);
-            if (!dstCodes) return;
-            uMap.addRange(*srcStart, dstCodes);
-        }
-    }
-}
-
-/**-------------------------------------------------------------------------
- * Contents value in a Page dictionary can be either a reference or
- * a an array of references. This method returns a list of references.
- */
-list<PdfReference> 
-PdfParser::toRefList(PdfObject* contentRefs) {    
-    list<PdfReference> list;
-    if (typeid(*contentRefs) == typeid(PdfReference)) {
-        list.push_back(*(PdfReference*) contentRefs);
-    } else {
-        PdfArray* refArr = dynamic_cast<PdfArray*> (contentRefs);
-        if (!refArr) return list;        
-        for (PdfArray::iterator it = refArr->begin(); it != refArr->end(); it++) {
-            PdfReference* ref = dynamic_cast<PdfReference*> (*it);            
-            if (ref) list.push_back(*ref);
-        }
-    }     
-    return list;
-}
-
-/**-------------------------------------------------------------------------
- * Save a text command. If cmd is of type
- * - PdfString, this is a Tj command (text string)
- * - PdfArray, this is a TJ command (array of text strings)
- * - PdfName, this is a Tf command (change font)
- * Strings and font names are saved as strings to 
- * textCommands[bodyReader.objectIndex], but text strings are denoted with a 
- * trailing 's' char and fonts with a trailing 'f' char. This is because there
- * can be lots of text commands and saving pointers would cause some memory overhead.
- */
-void PdfParser::saveTextCommand(PdfObject* cmd) {
-    //printf("Save text command\n");
-    if (typeid(*cmd) == typeid(PdfName)) {   
-        textCommands[bodyReader.objectRef].push_back(*(PdfName*) cmd + 'f');
-        return;
-    }   
-    string str;
-    if (typeid(*cmd) == typeid(PdfString)) {
-        str += *(PdfString*) cmd;
-    } else if (typeid(*cmd) == typeid(PdfArray)) {
-        PdfArray* arr = (PdfArray*) cmd;     
-        
-        for (PdfArray::iterator it = arr->begin(); it != arr->end(); it++) {
-            PdfObject* obj = *it;
-            if (typeid(*obj) == typeid(PdfString)) {
-                str += *(PdfString*) obj;
-            } else {
-                // Numbers with a large absolute value in a TJ
-                // array usually correspond to whitespace                
-                const int32_t MIN_SPACE_VALUE = 150;
-                PdfNumber* num = dynamic_cast<PdfNumber*> (obj);
-                if (!num) return;
-                int32_t val = num->integerPart();
-                if (val < -MIN_SPACE_VALUE || val > MIN_SPACE_VALUE) {                    
-                    str += UnicodeMap::WHITESPACE_CHAR;
-                }
-            }
-        }        
-    }   
-    str += 's';
-    textCommands[bodyReader.objectRef].push_back(str);    
-}
-
- 
-/**-------------------------------------------------------------------------
- * Handle a content stream. We are interested in the following commands:
- * - Tj, ', " (print a text string)
- * - TJ (print an array of text strings)
- * - Tf (select font)
- * - EndBfChar (in the case of a ToUnicode stream, a sequence of source and
- *   destination charcodes)
- * - endBfRange (a sequence of src and dst ranges)
- * 
- * Content streams can be split to several streams and the split often occurs even
- * between the arguments of an operator and the operator itself. If we find 
- * a set of arguments without an operator at the end of the stream, we send it to
- * saveTextCommand just in case.
- */
 StreamStatus
-PdfParser::handleContentStream(StreamBase<char>* s) {
-    //cout << "Handle content stream, ref "<<bodyReader.objectRef.toString()<<endl;
-    ContentStreamReader reader(s);
+PdfParser::parseOperator() {
+    int64_t p = pos - start;
+    StreamStatus r = skipNotFromString("()<>[]{}/%\t\n\f\r ", 16);
+    if (r == Error) {
+        m_error.assign(stream->error());
+        return r;
+    }
+    if (r == Eof) {
+        return r;
+    }
+    const char *s = start + p;
+    lastOperator.assign(s, pos-s);
+    if (lastOperator == "TJ" || lastOperator == "Tj") {
+        if (texthandler) {
+            texthandler->handle(lastString);
+        }
+        lastString.resize(0);
+    }
+    lastObject = &lastOperator;
+    return r;
+}
+StreamStatus
+PdfParser::parseDictionaryOrStream() {
+    enum Mode {None, Length, Filter, Type, First, N};
+    Mode mode = None;
+//    fprintf(stderr, "parseDictionary %p\n", this);
     StreamStatus r;
-    PdfReference ref = bodyReader.objectRef;
-    PdfOperator& op = reader.lastOperator;
-    while ((r = reader.parseNextCommand()) != Error) {   
-        if (!reader.lastArguments.empty() &&
-            (op == "Tj" || op == "'" || op == "\"" || op == "TJ" || op == "Tf"
-             || (r == Eof && op.empty())) ) {            
-            saveTextCommand(reader.lastArguments.front());                    
-        } else if (op == "endbfchar") {            
-            bfCharCommands[ref].push_back(reader.lastArguments);
-            reader.lastArguments.clear();
-        } else if (op == "endbfrange") {                
-            bfRangeCommands[ref].push_back(reader.lastArguments);
-            reader.lastArguments.clear();
-        } 
-        if (r == Eof) break;
-    }
-    return r;
-}
-/**-------------------------------------------------------------------------
- * Handle a object stream. In an object stream, the object indices are first and
- * the come the objects in a sequence. Save dictionaries if they are interesting.
- */
-StreamStatus
-PdfParser::handleObjectStream(StreamBase<char>* s, PdfDictionary* infoDict) {
-    //printf("Handle object stream, ref %s\n", bodyReader.objectRef.toString().c_str());
-    s->reset(0);
-    ObjectStreamReader reader(s, infoDict);
-    StreamStatus r;
-    
-    while ((r = reader.parseNextObject()) != Error) {
-        if (reader.lastDictionary) {
-            PdfDictionary* dict = reader.lastDictionary;
-            if (saveDictIfNeeded(dict)) {
-                reader.lastDictionary = 0;
-            }
+    pos += 2;
+    skipWhitespaceOrComment();
+    bool hasfilter = false;
+    string filter;
+    string type;
+    int length = -1;
+    int offset = 0;
+    int numberofobjects = 0;
+    while (*pos != '>') {
+        if (parseName() != Ok) {
+            m_error.assign("Expected a name.");
+            return Error;
         }
-        if (r == Eof) break;
-    } 
+        if (lastName == "Length") mode = Length;
+        else if (lastName == "Filter") mode = Filter;
+        else if (lastName == "Type") mode = Type;
+        else if (lastName == "First") mode = First;
+        else if (lastName == "N") mode = N;
+        else mode = None;
+        if (skipWhitespaceOrComment() != Ok) {
+            m_error.assign("Error parsing whitespace in dictionary.");
+            return Error;
+        }
+        lastObject = 0;
+        if (parseObjectStreamObject(0) != Ok) {
+            m_error.assign("Error parsing dictionary value.");
+            return Error;
+        }
+        if (mode == Length && lastObject == &lastNumber) {
+            length = (int32_t)lastNumber;
+        } else if (mode == Filter) {
+            hasfilter = true;
+            if (lastObject == &lastName) {
+                filter = lastName;
+            }
+        } else if (mode == Type && lastObject == &lastName) {
+            type = lastName;
+        } else if (mode == First && lastObject == &lastNumber) {
+            offset = (int32_t)lastNumber;
+        } else if (mode == N && lastObject == &lastNumber) {
+            numberofobjects = (int32_t)lastNumber;
+        }
+        if (skipWhitespaceOrComment() != Ok) {
+            m_error.assign("Error reading whitespace after dictionary value.");
+            return Error;
+        }
+    }
+    if (skipKeyword(">>", 2) != Ok) return Error;
+    r = skipWhitespaceOrComment();
+    if (r != Ok) return r;
+    if (checkForData(6) == Ok && *pos == 's' && pos[2] == 'r') {
+//        fprintf(stderr, "stream %i\n", end-pos);
+        skipKeyword("stream", 6);
+        if (checkForData(11) != Ok) return Error;
+        if (*pos == '\r') pos++;
+        if (*pos != '\n') return Error;
+        pos++;
+        if (length == -1) {
+            // the field Length is required
+            return Error;
+        }
+        // read stream until 'endstream'
+        int64_t p = bufferStart + pos-start;
+        if (p != stream->reset(p)) return Error;
+//        fprintf(stderr, "filter: %s\n", filter.c_str());
+//        fprintf(stderr, "type: %s %i\n", type.c_str(), streamcount);
+//        printf("position: %lli length %i\n", p, length);
+        SubInputStream sub(stream, length);
+        if (handleSubStream(&sub, type, offset, numberofobjects, hasfilter,
+                filter) != Eof) {
+            return Error;
+        }
+        // After reading the substream the pointers to the buffer are invalid.
+        // Reset the buffer to the current stream position
+        start = pos = end = 0;
+        bufferStart = stream->position();
+        //if (read(1, 0) != Ok) return Error;
+        //printf("hi %i\n", *pos);
+        if (skipWhitespaceOrComment() != Ok) return Error;
+//        printf("hi %i %.*s\n", pos-start, 10, pos);
+        if (skipKeyword("endstream", 9) != Ok) return Error;
+        streamcount++;
+    }
+//    printf("endDictionary %p\n", this);
+    return Ok;
+}
+StreamStatus
+PdfParser::parseArray(int nestDepth) {
+    lastString.resize(0);
+    pos++;
+    if (skipWhitespaceOrComment() != Ok) return Error;
+    while (*pos != ']') {
+        if (parseObjectStreamObject(nestDepth+1) != Ok) return Error;
+        if (skipWhitespaceOrComment() != Ok) return Error;
+    }
+    pos++;
+    lastObject = 0;
+    return Ok;
+}
+StreamStatus
+PdfParser::parseNull() {
+    return skipKeyword("null", 4);
+}
+StreamStatus
+PdfParser::parseObjectStreamObject(int nestDepth) {
+    //printf("parseObjectStreamObject %.*s\n", (5>end-pos)?end-pos:5, pos);
+    StreamStatus r = checkForData(2);
+    if (r != Ok) return r;
+    if (nestDepth > 1000) return Error; // treat nesting 1000 levels as an error
+
+    char ch = *pos;
+    if (ch == 't' || ch == 'f') {
+        r = parseBoolean();
+    } else if (ch == '+' || ch == '-' || ch == '.' || isdigit(ch)) {
+        r = parseNumberOrIndirectObject();
+    } else if (ch == '(') {
+        r = parseLiteralString();
+    } else if (ch == '/') {
+        r = parseName();
+    } else if (ch == '<') {
+        if (end-pos > 1 && pos[1] == '<') {
+            r = parseDictionaryOrStream();
+        } else {
+            r = parseHexString();
+        }
+    } else if (ch == '[') {
+        r = parseArray(nestDepth+1);
+    } else if (ch == 'n') {
+        r = parseNull();
+    } else {
+        return Error;
+    }
+    if (r != Ok) return r;
+    r = skipWhitespaceOrComment();
     return r;
 }
-
-/**-------------------------------------------------------------------------
- * Handle a stream. Pass on the stream the handleContentStream or
- * handleObjectStream if needed.
- */
 StreamStatus
-PdfParser::handleStream(StreamBase<char>* s, PdfDictionary* dict) {       
-    PdfName key;
-    StreamBase<char>* stm = s;
-    if (dict->count(key.assign("Filter")) != 0) {
-        PdfName* filter = dynamic_cast<PdfName*> ((*dict)[key]);
-        if (filter && *filter == "FlateDecode") {
-            stm = new GZipInputStream(s, GZipInputStream::ZLIBFORMAT);
+PdfParser::parseContentStreamObject() {
+    StreamStatus r = checkForData(2);
+    if (r != Ok) return r;
+//    fprintf(stderr, "parseContentStreamObject %.*s\n",
+//        (5>end-pos)?end-pos:5, pos);
+//    fprintf(stderr, "pos: %lli\n", stream->position());
+
+    char ch = *pos;
+    if (ch == '+' || ch == '-' || ch == '.' || isdigit(ch)) {
+        r = parseNumber();
+    } else if (ch == '(') {
+        r = parseLiteralString();
+    } else if (ch == '/') {
+        r = parseName();
+    } else if (ch == '<') {
+        if (end-pos > 1 && pos[1] == '<') {
+            r = parseDictionaryOrStream();
         } else {
-            // We cannot handle this stream
-            //cerr << "Discarding stream "<< dict->toString() << endl;;
-            if (streamhandler) streamhandler->handle(s);
-            return forwardStream(s);
-        }             
-    }   
-    stm->reset(0);
-    PdfName* type = dynamic_cast<PdfName*> (dict->get("Type"));
-    if (!type && !dict->hasKey("Subtype")) {
-        //cout << "Handle content stream with dict: "<<dict->toString()<<endl;
-        handleContentStream(stm);    
+            r = parseHexString();
+        }
+    } else if (ch == '[') {
+        r = parseArray(0);
+    } else if (isalpha(ch)) {
+        r = parseOperator();
+    } else {
+        return Error;
     }
-    else if (type && *type == "ObjStm") handleObjectStream(stm, dict);
-            
-    stm->reset(0);
-    if (streamhandler) streamhandler->handle(stm);    
-    if (stm != s) delete stm;
-    return forwardStream(s);
-    
+    if (r != Ok) return r;
+    r = skipWhitespaceOrComment();
+    return r;
 }
-
-/**-------------------------------------------------------------------------
- * Skip until EOF.
- */
 StreamStatus
-PdfParser::forwardStream(StreamBase<char>* s) {
+PdfParser::parseObjectStream(StreamBase<char>* s, int32_t offset, int32_t n) {
+    stream = s;
+    end = pos = start = 0;
+    bufferStart = 0;
+
+    stream->skip(offset);
     StreamStatus r = Ok;
+    for (int32_t i=0; r == Ok && i<n; ++i) {
+        r = parseObjectStreamObject(0);
+    }
     while (r == Ok) {
         s->skip(1000);
         r = s->status();
     }
+    if (r == Eof) {
+//        printf("size: %i\n", s->size());
+    }
     return r;
 }
-
-/**-------------------------------------------------------------------------
- * Calculate the memory taken by saved text strings and dictionaries
- */
-
-size_t
-PdfParser::getTextCommandsMemoryUsage() {
-    size_t size = textCommands.size()*sizeof(pair<PdfReference, list<string> >);
-    map<PdfReference, list<string> >::iterator it;
-    for(it = textCommands.begin(); it != textCommands.end(); it++) {
-        size += (*it).second.size()*sizeof(string);
-        list<string>::iterator it2;
-        for(it2 = (*it).second.begin(); it2 != (*it).second.end(); it2++) {
-            size += (*it2).length();
+StreamStatus
+PdfParser::parseContentStream(StreamBase<char>* s) {
+    stream = s;
+    end = pos = start = 0;
+    bufferStart = 0;
+    StreamStatus r = skipWhitespaceOrComment();
+//    fprintf(stderr, "eh %i %i\n", r, Eof);
+    if (r != Ok) return r;
+    while ((r = parseContentStreamObject()) == Ok) {};
+//    fprintf(stderr, "PdfParser::parseContentStream %i %i\n", r, Eof);
+    return r;
+}
+StreamStatus
+PdfParser::skipXRef() {
+    // skip header
+    if (skipKeyword("xref", 4) != Ok || skipWhitespaceOrComment() != Ok
+            || skipNumber() != Ok || skipWhitespaceOrComment() != Ok
+            || parseNumber() != Ok || skipWhitespaceOrComment() != Ok) {
+        return Error;
+    }
+    // parse number of entreis
+    int entries = (int)lastNumber;
+    for (int i = 0; i != entries; ++i) {
+        if (skipNumber() != Ok || skipWhitespaceOrComment() != Ok
+            || skipNumber() != Ok || skipWhitespaceOrComment() != Ok
+            || skipFromString("fn", 2) != Ok
+            || skipWhitespaceOrComment() != Ok) {
+                return Error;
         }
     }
-    return size;
+    return Ok;
 }
-size_t
-PdfParser::getDictionariesMemoryUsage() {
-    size_t size = dictionaries.size()*sizeof(pair<PdfReference, PdfDictionary*>);
-    map<PdfReference, PdfDictionary*>::iterator it;
-    for (it = dictionaries.begin(); it != dictionaries.end(); it++) {
-        size += (*it).second->totalSize();
+StreamStatus
+PdfParser::skipTrailer() {
+    if (skipKeyword("trailer", 7) != Ok || skipWhitespaceOrComment() != Ok
+            || parseDictionaryOrStream() != Ok) {
+        return Error;
     }
-    return size;
+    return Ok;
 }
+StreamStatus
+PdfParser::skipStartXRef() {
+    if (skipKeyword("startxref", 9) != Ok || skipWhitespaceOrComment() != Ok
+            || skipNumber() != Ok) {
+        fprintf(stderr, "error in startxref 1\n");
+        return Error;
+    }
+    return skipWhitespaceOrComment();
+}
+StreamStatus
+PdfParser::parseObjectStreamObjectDef() {
+    if (*pos == 'x') return skipXRef();
+    if (*pos == 't') return skipTrailer();
+    if (*pos == 's') return skipStartXRef();
+    if (checkForData(13) != Ok) return Error;
+//    fprintf(stderr, "parseObjectStreamObjectDef %.*s\n", ((10>end-pos)?end-pos:10), pos);
+    if (parseNumber() != Ok || skipWhitespaceOrComment() != Ok
+        || parseNumber() != Ok || skipWhitespaceOrComment() != Ok
+        || skipKeyword("obj", 3) != Ok || skipWhitespaceOrComment() != Ok
+        || parseObjectStreamObject(0) != Ok || skipWhitespaceOrComment() != Ok
+        || skipKeyword("endobj", 6) != Ok) {
+        return Error;
+    }
+    StreamStatus r = skipWhitespaceOrComment();
+//    fprintf(stderr, "parsed obj ok %i\n", r);
+    return r;
+}
+StreamStatus
+PdfParser::parse(StreamBase<char>* stream) {
+    stream->reset(0);
+    StreamStatus r;
 
-/**-------------------------------------------------------------------------
- * Default handlers
- */
+    // initialize the stream status
+    this->stream = stream;
+    end = pos = start = 0;
+    bufferStart = 0;
+
+    // initialize the parsed field containers
+    lastNumber = -1;
+    lastName.resize(0);
+    lastObject = 0;
+
+    r = skipWhitespaceOrComment();
+    if (r != Ok) {
+        fprintf(stderr, "Error: %s\n", stream->error());
+        return r;
+    }
+    while ((r = parseObjectStreamObjectDef()) == Ok) {};
+//    fprintf(stderr, "%i %i %i\n", r, streamcount, Eof);
+    if (r == Error) {
+        fprintf(stderr, "Error in parsing: %s\n", m_error.c_str());
+    }
+    return r;
+}
 Strigi::StreamStatus
 PdfParser::DefaultStreamHandler::handle(Strigi::StreamBase<char>* s) {
     static int count = 0;
@@ -624,4 +611,56 @@ PdfParser::DefaultTextHandler::handle(const string& s) {
     printf("%s\n", s.c_str());
     return Ok;
 }
+void
+PdfParser::forwardStream(StreamBase<char>* s) {
+    const char* c;
+    int32_t n = s->read(c, 1024, 0);
+    while (n >= 0 && s->status() == Ok) {
+        s->reset(0);
+        n = s->read(c, 2*n, 0);
+    }
+}
+StreamStatus
+PdfParser::handleSubStream(StreamBase<char>* s, const std::string& type,
+        int32_t offset, int32_t numberofobjects, bool hasfilter,
+        const string& filter) {
+    if (hasfilter) {
+        if (filter == "FlateDecode") {
+            GZipInputStream gzip(s, GZipInputStream::ZLIBFORMAT);
+            return handleSubStream(&gzip, type, offset, numberofobjects);
+        } else {
+            // we cannot handle these filters, so we send the raw data
+            return handleSubStream(s, type, 0, 0);
+        }
+    } else {
+        return handleSubStream(s, type, offset, numberofobjects);
+    }
+}
+StreamStatus
+PdfParser::handleSubStream(StreamBase<char>* s, const std::string& type,
+        int32_t offset, int32_t numberofobjects) {
+    // try to parse as an object stream
+    PdfParser parser;
+    parser.texthandler = texthandler;
+    parser.streamhandler = streamhandler;
+    if (type == "ObjStm") {
+        if (parser.parseObjectStream(s, offset, numberofobjects) == Eof) {
+            return Eof;
+        } else {
+            return Error;
+        }
+    }
 
+    // try to parse as a content stream
+    s->reset(0);
+    if (parser.parseContentStream(s) == Eof) {
+        return Eof;
+    }
+    // handle the stream by an external handler
+    s->reset(0);
+    if (streamhandler) {
+        streamhandler->handle(s);
+    }
+    forwardStream(s);
+    return s->status();
+}

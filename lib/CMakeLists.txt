@@ -14,9 +14,6 @@ set(streamanalyzer_SRCS
 	fnmatch.cpp
 	indexpluginloader.cpp
 	lineeventanalyzer.cpp
-	pdf/pdfobjects.cpp
-	pdf/unicodemap.cpp	
-	pdf/pdfreader.cpp
 	pdf/pdfparser.cpp
 	query.cpp
 	queryparser.cpp
