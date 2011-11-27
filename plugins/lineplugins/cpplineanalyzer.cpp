@@ -103,7 +103,9 @@ CppLineAnalyzer::handleLine(const char* data, uint32_t length) {
             size_t pos4 = include1.find("\"",0);
             size_t pos5 = include1.find("\"", pos4+1);
             if((pos4 != string::npos) && (pos5 != string::npos)){
-                analysisResult->addValue(factory->includeField, include1.substr(1+pos4,((pos5-1)-pos4)));
+                // FIXME: we need a useful new property or new DataObject type to describe a C header
+                // which does not have an absolute path.
+                //analysisResult->addValue(factory->includeField, include1.substr(1+pos4,((pos5-1)-pos4)));
                 includes++;
             }
         }
