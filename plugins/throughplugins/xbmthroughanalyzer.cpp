@@ -145,7 +145,7 @@ XbmThroughAnalyzer::connectInputStream(InputStream* in) {
         }
     }
 
-    analysisResult->addValue(factory->typeField, "http://www.semanticdesktop.org/ontologies/nfo#Cursor");
+    analysisResult->addValue(factory->typeField, "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Cursor");
 
     return in;
 }

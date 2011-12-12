@@ -65,7 +65,7 @@ XpmLineAnalyzer::handleLine(const char* data, uint32_t length) {
     uint32_t i = 0;
     // we have found the line which should contain the information we want
     ready = true;
-    // read the height
+    // read the width
     uint32_t propertyValue = 0;
     i++;
     while (i < length && isdigit(data[i])) {
@@ -76,9 +76,9 @@ XpmLineAnalyzer::handleLine(const char* data, uint32_t length) {
     if (i >= length || data[i] != ' ')
         return;
 
-    analysisResult->addValue(factory->heightField, propertyValue);
+    analysisResult->addValue(factory->widthField, propertyValue);
 
-    // read the width
+    // read the height
     propertyValue = 0;
     i++;
     while (i < length && isdigit(data[i])) {
@@ -89,7 +89,7 @@ XpmLineAnalyzer::handleLine(const char* data, uint32_t length) {
     if (i >= length || data[i] != ' ')
         return;
 
-    analysisResult->addValue(factory->widthField, propertyValue);
+    analysisResult->addValue(factory->heightField, propertyValue);
 
     // read the number of colors
     propertyValue = 0;
@@ -103,7 +103,7 @@ XpmLineAnalyzer::handleLine(const char* data, uint32_t length) {
         return;
 
     analysisResult->addValue(factory->numberOfColorsField, propertyValue);
-    analysisResult->addValue(factory->typeField, "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Image");
+    analysisResult->addValue(factory->typeField, "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#RasterImage");
 }
 bool
 XpmLineAnalyzer::isReadyWithStream() {
