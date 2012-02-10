@@ -37,6 +37,8 @@ const string
 	"http://www.semanticdesktop.org/ontologies/2007/03/22/nco#fullname"),
     titlePropertyName(
 	"http://www.semanticdesktop.org/ontologies/2007/01/19/nie#title"),
+    albumTrackCountName(
+        NMM_DRAFT "albumTrackCount"),
 
     musicClassName(
 	NMM_DRAFT "MusicPiece"),
@@ -66,6 +68,14 @@ OggThroughAnalyzerFactory::registerFields(FieldRegister& r) {
 // ogg spec fields left unimplemented: ORGANIZATION, LOCATION, CONTACT
 
     fields["type"] = r.typeField;
+}
+
+inline
+void
+addStatement(AnalysisResult* indexable, string& subject, const string& predicate, const string& object) {
+  if (subject.empty())
+    subject = indexable->newAnonymousUri();
+  indexable->addTriplet(subject, predicate, object);
 }
 
 void
@@ -129,6 +139,7 @@ OggThroughAnalyzer::connectInputStream(InputStream* in) {
     // but for the composer in calssical music. Thus, we cache both and make the decision
     // at the end
     string artist, performer;
+    string albumUri;
 
     // read all the comments
     p2 += 4;
@@ -151,15 +162,21 @@ OggThroughAnalyzer::connectInputStream(InputStream* in) {
                     = factory->fields.find(name);
                 string value(p2+eq+1, size-eq-1);
                 if (iter != factory->fields.end()) {
-                    indexable->addValue(iter->second, value);
+                    // Hack: the tracknumber sometimes contains the track count, too
+                    int pos = 0;
+                    if(name=="tracknumber" && (pos = value.find_first_of('/')) > 0 ) {
+                        // the track number
+                        indexable->addValue(iter->second, value.substr(0, pos));
+                        // the track count
+                        addStatement(indexable, albumUri, albumTrackCountName, value.substr(pos+1));
+                    }
+                    else {
+                        indexable->addValue(iter->second, value);
+                    }
                 } else if(name=="artist") {
                     artist = value;
                 } else if(name=="album") {
-		    string albumUri = indexable->newAnonymousUri();
-		    
-		    indexable->addValue(factory->albumField, albumUri);
-		    indexable->addTriplet(albumUri, typePropertyName, albumClassName);
-		    indexable->addTriplet(albumUri, titlePropertyName, value);
+                    addStatement(indexable, albumUri, titlePropertyName, value);
 		} else if(name=="composer") {
 		    string composerUri = indexable->newAnonymousUri();
 
@@ -205,6 +222,10 @@ OggThroughAnalyzer::connectInputStream(InputStream* in) {
         indexable->addValue(performerField, performerUri);
         indexable->addTriplet(performerUri, typePropertyName, contactClassName);
         indexable->addTriplet(performerUri, fullnamePropertyName, performer);
+    }
+    if(!albumUri.empty()) {
+      indexable->addValue(factory->albumField, albumUri);
+      indexable->addTriplet(albumUri, typePropertyName, albumClassName);
     }
 
     // set the "codec" value

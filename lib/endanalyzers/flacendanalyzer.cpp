@@ -52,6 +52,8 @@ const string
 	NMM_DRAFT "musicBrainzAlbumID"),
     discNumberPropertyName(
 	NMM_DRAFT "setNumber"),
+    albumTrackCountName(
+        NMM_DRAFT "albumTrackCount"),
 
     musicClassName(
 	NMM_DRAFT "MusicPiece"),
@@ -226,7 +228,17 @@ FlacEndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream*
 		    const string value(p2+eq+1, size-eq-1);
 		    
 		    if (iter != factory->fields.end()) {
-			indexable.addValue(iter->second, value);
+                        // Hack: the tracknumber sometimes contains the track count, too
+                        int pos = 0;
+                        if(name=="tracknumber" && (pos = value.find_first_of('/')) > 0 ) {
+                            // the track number
+                            indexable.addValue(iter->second, value.substr(0, pos));
+                            // the track count
+                            addStatement(indexable, albumUri, albumTrackCountName, value.substr(pos+1));
+                        }
+                        else {
+                            indexable.addValue(iter->second, value);
+                        }
 		    } else if(name=="artist") {
                         artist = value;
 		    } else if(name=="lyrics") {
@@ -261,7 +273,7 @@ FlacEndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream*
 			indexable.addTriplet(publisherUri, fullnamePropertyName, value);
 		    } else if(name=="performer") {
                         performer = value;
-		    }
+                    }
 		}
 	    } else {
 		m_error = "problem with tag size";
