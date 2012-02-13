@@ -26,13 +26,16 @@
 #include <string>
 #include <cstring>
 
+#include <unistd.h>
+#include <stdlib.h>
+
 // AnalyzerFactory
 void M3uLineAnalyzerFactory::registerFields(Strigi::FieldRegister& reg) 
 {
 // track list length is easily obtained via API
 //    tracksField = reg.registerField();
     trackPathField = reg.registerField(
-        "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#hasLogicalPart");
+        "http://www.semanticdesktop.org/ontologies/2007/01/19/nie#links");
     m3uTypeField = reg.registerField(
         "http://freedesktop.org/standards/xesam/1.0/core#formatSubtype");
     typeField = reg.typeField;
@@ -43,7 +46,7 @@ void M3uLineAnalyzerFactory::registerFields(Strigi::FieldRegister& reg)
 }
 
 // Analyzer
-void M3uLineAnalyzer::startAnalysis(Strigi::AnalysisResult* i) 
+void M3uLineAnalyzer::startAnalysis(Strigi::AnalysisResult* i)
 {
     extensionOk = i->extension() == "m3u" || i->extension() == "M3U";
 
@@ -52,7 +55,24 @@ void M3uLineAnalyzer::startAnalysis(Strigi::AnalysisResult* i)
     count = 0;
 }
 
-void M3uLineAnalyzer::handleLine(const char* data, uint32_t length) 
+std::string M3uLineAnalyzer::constructAbsolutePath(const std::string &relative) const
+{
+    if(char* buf = realpath(analysisResult->path().c_str(), 0)) {
+#ifdef _WIN32
+        static const char s_pathSeparator = '\\';
+#else
+        static const char s_pathSeparator = '/';
+#endif
+        std::string path(buf);
+        free(buf);
+        return path.substr(0, path.rfind(s_pathSeparator)+1) + relative;
+    }
+    else {
+        return std::string();
+    }
+}
+
+void M3uLineAnalyzer::handleLine(const char* data, uint32_t length)
 {
     if (!extensionOk) 
         return;
@@ -68,8 +88,11 @@ void M3uLineAnalyzer::handleLine(const char* data, uint32_t length)
         //if (line == 1)
         //    analysisResult->addValue(factory->m3uTypeField, "simple");
 
-        // TODO: Check for a valid url with QUrl
-        analysisResult->addValue(factory->trackPathField, std::string(data, length));
+        // we create absolute paths and drop links to non-existing files
+        const std::string path = constructAbsolutePath(std::string(data, length));
+        if(!access(path.c_str(), F_OK)) {
+            analysisResult->addValue(factory->trackPathField, path);
+        }
 
         ++count;
     } else if (line == 1 && strncmp(data, "#EXTM3U", 7) == 0) {      

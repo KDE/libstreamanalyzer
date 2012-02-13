@@ -26,6 +26,8 @@
 #include <strigi/analyzerplugin.h>
 #include <strigi/streamlineanalyzer.h>
 
+#include <string>
+
 class M3uLineAnalyzerFactory;
 
 class M3uLineAnalyzer : public Strigi::StreamLineAnalyzer 
@@ -36,6 +38,8 @@ private:
     int32_t line;
     bool extensionOk;
     int32_t count;
+
+    std::string constructAbsolutePath(const std::string& relative) const;
 
 public:
     M3uLineAnalyzer(const M3uLineAnalyzerFactory* f) : factory(f) {}
