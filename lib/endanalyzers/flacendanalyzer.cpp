@@ -124,6 +124,16 @@ addStatement(AnalysisResult& indexable, string& subject, const string& predicate
   indexable.addTriplet(subject, predicate, object);
 }
 
+string
+removeAlphabets(const string& str) {
+    std::string newStr;
+    newStr.reserve(str.length());
+    for( int i=0; i<str.length(); i++ )
+        if( !isalpha(str[i]) )
+            newStr.push_back( str[i] );
+    return newStr;
+}
+
 signed char
 FlacEndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream* in) {
     if(!in)
@@ -225,20 +235,22 @@ FlacEndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream*
 		    // check if we can handle this field and if so handle it
 		    map<string, const RegisteredField*>::const_iterator iter
 			= factory->fields.find(name);
-		    const string value(p2+eq+1, size-eq-1);
+		    string value(p2+eq+1, size-eq-1);
 		    
 		    if (iter != factory->fields.end()) {
-                        // Hack: the tracknumber sometimes contains the track count, too
-                        int pos = 0;
-                        if(name=="tracknumber" && (pos = value.find_first_of('/')) > 0 ) {
-                            // the track number
-                            indexable.addValue(iter->second, value.substr(0, pos));
-                            // the track count
-                            addStatement(indexable, albumUri, albumTrackCountName, value.substr(pos+1));
-                        }
-                        else {
-                            indexable.addValue(iter->second, value);
-                        }
+                // Hack: the tracknumber sometimes contains the track count, too
+                int pos = 0;
+                if(name=="tracknumber" && (pos = value.find_first_of('/')) > 0 ) {
+                    // the track number
+                    indexable.addValue(iter->second, value.substr(0, pos));
+                    // the track count
+                    addStatement(indexable, albumUri, albumTrackCountName, value.substr(pos+1));
+                }
+                else {
+                    if(name == "replaygain_track_gain")
+                        value = removeAlphabets(value);
+                    indexable.addValue(iter->second, value);
+                }
 		    } else if(name=="artist") {
                         artist = value;
 		    } else if(name=="lyrics") {
@@ -256,9 +268,10 @@ FlacEndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream*
 		    } else if(name=="trackcount") {
 			addStatement(indexable, albumUri, albumTrackCountPropertyName, value);
 		    } else if(name=="replaygain_album_gain") {
-			addStatement(indexable, albumUri, albumGainPropertyName, value);
+			// the gain is often in the form "number dB", the appending "dB" must be removed
+			addStatement(indexable, albumUri, albumGainPropertyName, removeAlphabets(value));
 		    } else if(name=="replaygain_album_peak") {
-			addStatement(indexable, albumUri, albumPeakGainPropertyName, value);
+			addStatement(indexable, albumUri, albumPeakGainPropertyName, removeAlphabets(value));
 		    } else if(name=="composer") {
 			const string composerUri( indexable.newAnonymousUri() );
 
