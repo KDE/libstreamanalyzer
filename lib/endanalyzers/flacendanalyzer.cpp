@@ -266,7 +266,7 @@ FlacEndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream*
 			addStatement(indexable, albumUri, titlePropertyName, value);
 		    } else if(name=="mbalbumid") {
 			addStatement(indexable, albumUri, musicBrainzAlbumIDPropertyName, value);
-		    } else if(name=="trackcount") {
+		    } else if(name=="trackcount" || name=="tracktotal") {
 			addStatement(indexable, albumUri, albumTrackCountPropertyName, value);
 		    } else if(name=="replaygain_album_gain") {
 			// the gain is often in the form "number dB", the appending "dB" must be removed
