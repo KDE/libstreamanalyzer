@@ -51,6 +51,8 @@ const string
 	NCO "fullname"),
     titlePropertyName(
 	NIE "title"),
+    albumArtistPropertyName(
+	NMM_DRAFT "albumArtist"),
     albumTrackCountPropertyName(
 	NMM_DRAFT "albumTrackCount"),
     discNumberPropertyName(
@@ -541,7 +543,6 @@ ID3EndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream* 
 		    indexable.addValue(factory->createdField, value);
 		    found_year = true;
 		} else if ((strncmp("TPE1", p, 4) == 0) ||
-			    (strncmp("TPE2", p, 4) == 0) ||
 			    (strncmp("TPE3", p, 4) == 0) ||
 			    (strncmp("TPE4", p, 4) == 0)) {
 		    string performerUri = indexable.newAnonymousUri();
@@ -550,6 +551,12 @@ ID3EndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream* 
 		    indexable.addTriplet(performerUri, typePropertyName, contactClassName);
 		    indexable.addTriplet(performerUri, fullnamePropertyName, value);
 		    found_artist = true;
+		} else if (strncmp("TPE2", p, 4) == 0) {
+		    const string albumArtistUri( indexable.newAnonymousUri() );
+
+		    addStatement(indexable, albumUri, albumArtistPropertyName, albumArtistUri);
+		    indexable.addTriplet(albumArtistUri, typePropertyName, contactClassName);
+		    indexable.addTriplet(albumArtistUri, fullnamePropertyName, value);
 		} else if ((strncmp("TPUB", p, 4) == 0) ||
 			    (strncmp("TENC", p, 4) == 0)) {
 		    string publisherUri = indexable.newAnonymousUri();
