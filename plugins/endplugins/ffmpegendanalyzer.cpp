@@ -260,18 +260,18 @@ handle subtitles
 */
 
 int read_data(void *opaque, uint8_t *buf, int buf_size) {
-  cout<<"READ";
+  //cout<<"READ";
   InputStream *s = (InputStream *) opaque;
   if (!s)
     return -1;
 
   const char *sbuf;
-  cout<<s->position()<<" "<<flush;
+  //cout<<s->position()<<" "<<flush;
   int32_t len = s->read(sbuf, buf_size, buf_size);
-    cout<<s->position()<<" "<<buf_size<<" "<<len<<" "<<s->size()<<flush;
+  // cout<<s->position()<<" "<<buf_size<<" "<<len<<" "<<s->size()<<flush;
   if (len>0)
     memcpy( buf, sbuf, len);
-  cout<<" OK\n"<<flush;
+  //cout<<" OK\n"<<flush;
   return len;
 }
 
@@ -280,7 +280,7 @@ int64_t seek_data(void *opaque, int64_t offset, int whence) {
   int64_t target = -1;
   int64_t size;
   
-  cout<<"SEEK"<<offset<<" "<<whence<<"\n"<<flush;
+  //cout<<"SEEK"<<offset<<" "<<whence<<"\n"<<flush;
   
   if ( whence== SEEK_SET) {
     target = offset;
