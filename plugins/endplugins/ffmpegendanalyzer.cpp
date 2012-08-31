@@ -587,7 +587,10 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
   {
     const char *trackValue = entry->value;
     if (int32_t len = strlen(trackValue)) {
-      ar.addValue(factory->trackProperty, string(trackValue, len) );
+        //Deal with things like '1/12'
+        string str = string(trackValue,len);
+        string sub = str.substr(0,str.find('/'));
+      ar.addValue(factory->trackProperty, sub );
     }
   }
 
