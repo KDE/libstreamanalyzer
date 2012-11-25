@@ -30,6 +30,7 @@
 #include <iostream>
 #include <cctype>
 #include <cstring>
+#include <list>
 using namespace Strigi;
 using namespace std;
 
@@ -212,7 +213,7 @@ FlacEndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream*
         // in Vorbis comments the "artist" field is used for the performer in modern music
         // but for the composer in calssical music. Thus, we cache both and make the decision
         // at the end
-        string artist, performer;
+	list<string> artists, performers;
 
 	// read all the comments
 	p2 += 4;
@@ -252,7 +253,7 @@ FlacEndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream*
                     indexable.addValue(iter->second, value);
                 }
 		    } else if(name=="artist") {
-                        artist = value;
+                        artists.push_back(value);
 		    } else if(name=="lyrics") {
                         indexable.addText(value.c_str(),
                                           (int32_t)value.length());
@@ -265,7 +266,7 @@ FlacEndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream*
 			addStatement(indexable, albumUri, titlePropertyName, value);
 		    } else if(name=="mbalbumid") {
 			addStatement(indexable, albumUri, musicBrainzAlbumIDPropertyName, value);
-		    } else if(name=="trackcount") {
+		    } else if(name=="trackcount" || name=="tracktotal") {
 			addStatement(indexable, albumUri, albumTrackCountPropertyName, value);
 		    } else if(name=="replaygain_album_gain") {
 			// the gain is often in the form "number dB", the appending "dB" must be removed
@@ -285,7 +286,7 @@ FlacEndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream*
 			indexable.addTriplet(publisherUri, typePropertyName, contactClassName);
 			indexable.addTriplet(publisherUri, fullnamePropertyName, value);
 		    } else if(name=="performer") {
-                        performer = value;
+                        performers.push_back(value);
                     }
 		}
 	    } else {
@@ -298,8 +299,8 @@ FlacEndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream*
         // we now decide how to store the artist and performer as suggested by the Vorbis comments spec
         const Strigi::RegisteredField* artistField = 0;
         const Strigi::RegisteredField* performerField = 0;
-        if (!artist.empty()) {
-            if (!performer.empty()) {
+        if (!artists.empty()) {
+            if (!performers.empty()) {
                 artistField = factory->composerField;
                 performerField = factory->performerField;
             }
@@ -307,22 +308,30 @@ FlacEndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream*
                 artistField = factory->performerField;
             }
         }
-        else if (!performer.empty()) {
+        else if (!performers.empty()) {
             performerField = factory->performerField;
         }
         if (artistField) {
-            const string artistUri( indexable.newAnonymousUri() );
+	    list<string>::iterator aIt;
 
-            indexable.addValue(artistField, artistUri);
-            indexable.addTriplet(artistUri, typePropertyName, contactClassName);
-            indexable.addTriplet(artistUri, fullnamePropertyName, artist);
+            for(aIt=artists.begin(); aIt != artists.end(); ++aIt) {
+                const string artistUri( indexable.newAnonymousUri() );
+
+                indexable.addValue(artistField, artistUri);
+                indexable.addTriplet(artistUri, typePropertyName, contactClassName);
+                indexable.addTriplet(artistUri, fullnamePropertyName, *aIt);
+            }
         }
         if (performerField) {
-            const string performerUri( indexable.newAnonymousUri() );
+            list<string>::iterator pIt;
 
-            indexable.addValue(performerField, performerUri);
-            indexable.addTriplet(performerUri, typePropertyName, contactClassName);
-            indexable.addTriplet(performerUri, fullnamePropertyName, performer);
+            for(pIt=performers.begin(); pIt != performers.end(); ++pIt) {
+                const string performerUri( indexable.newAnonymousUri() );
+
+                indexable.addValue(performerField, performerUri);
+                indexable.addTriplet(performerUri, typePropertyName, contactClassName);
+                indexable.addTriplet(performerUri, fullnamePropertyName, *pIt);
+            }
         }
 
 	if(!albumUri.empty()) {

@@ -328,13 +328,11 @@ DirLister::Private::nextDir(std::string& path,
                         todoPaths.push_back(entrypath);
                         STRIGI_MUTEX_UNLOCK(&mutex);
                         mutexLocked = false;
-                        dirs.push_back(make_pair<string,struct stat>(
-                            entrypath, entrystat));
+                        dirs.push_back(make_pair(entrypath, entrystat));
                     }
                 } else if (config == 0 || config->indexFile(entrypath.c_str(),
                         entryname.c_str())) {
-                    dirs.push_back(
-                        make_pair<string,struct stat>(entrypath, entrystat));
+                    dirs.push_back(make_pair(entrypath, entrystat));
                 }
             }
         }

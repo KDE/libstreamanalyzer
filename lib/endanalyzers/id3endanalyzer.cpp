@@ -51,6 +51,8 @@ const string
 	NCO "fullname"),
     titlePropertyName(
 	NIE "title"),
+    albumArtistPropertyName(
+	NMM_DRAFT "albumArtist"),
     albumTrackCountPropertyName(
 	NMM_DRAFT "albumTrackCount"),
     discNumberPropertyName(
@@ -81,7 +83,9 @@ replaygain
 VBR detection
 */
 
-static const string genres[148] = {
+#define ID3_NUMBER_OF_GENRES 148
+
+static const string genres[ID3_NUMBER_OF_GENRES] = {
   "Blues",
   "Classic Rock",
   "Country",
@@ -372,6 +376,54 @@ static bool extract_and_trim(const char* buf, int offset, int length, string& s)
     return !s.empty();
 }
 
+/**
+ * Functional helper class to get the right numbers out of a 'genre' string which
+ * might be a number in a index
+ */
+class genre_number_parser {
+  private:
+    bool success;
+    long result;
+    void parse_string( string genre ) {
+        char* endptr;
+        int r = strtol(genre.c_str(),&endptr, 10);
+        if(*endptr == '\0') { //to check if the convertion went more or less ok
+	    if(r >=0 && r < ID3_NUMBER_OF_GENRES ) { //to ensure it is within the range we have
+	        success=true;
+	        result=r;
+	    }
+        }
+    }
+  public:
+    /**
+     * constructor taking the genre string you want parsed as a number
+     */
+    genre_number_parser(string genre) : success(false), result(-1) {
+        if(genre.size()==0) {
+	  //if the string is empty, there is no need to try to parse it
+	    return;
+        }
+        //the string might start and end with parenthesis
+        if(genre[0]=='(' && genre[genre.size()-1]==')') {
+	    parse_string(genre.substr(1,genre.length()-2));
+	    return;
+        }
+        parse_string(genre);
+    }
+    /**
+     * wether or not parsing was successful
+     */
+    operator bool() {
+        return success;
+    }
+    /**
+     * the actual result of the parsing, or -1 if parsing wasn't successful
+     */
+    operator long() {
+        return result;
+    }
+};
+
 signed char
 ID3EndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream* in) {
   const int max_padding = 1000;
@@ -491,7 +543,6 @@ ID3EndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream* 
 		    indexable.addValue(factory->createdField, value);
 		    found_year = true;
 		} else if ((strncmp("TPE1", p, 4) == 0) ||
-			    (strncmp("TPE2", p, 4) == 0) ||
 			    (strncmp("TPE3", p, 4) == 0) ||
 			    (strncmp("TPE4", p, 4) == 0)) {
 		    string performerUri = indexable.newAnonymousUri();
@@ -500,6 +551,12 @@ ID3EndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream* 
 		    indexable.addTriplet(performerUri, typePropertyName, contactClassName);
 		    indexable.addTriplet(performerUri, fullnamePropertyName, value);
 		    found_artist = true;
+		} else if (strncmp("TPE2", p, 4) == 0) {
+		    const string albumArtistUri( indexable.newAnonymousUri() );
+
+		    addStatement(indexable, albumUri, albumArtistPropertyName, albumArtistUri);
+		    indexable.addTriplet(albumArtistUri, typePropertyName, contactClassName);
+		    indexable.addTriplet(albumArtistUri, fullnamePropertyName, value);
 		} else if ((strncmp("TPUB", p, 4) == 0) ||
 			    (strncmp("TENC", p, 4) == 0)) {
 		    string publisherUri = indexable.newAnonymousUri();
@@ -512,13 +569,17 @@ ID3EndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream* 
 		    addStatement(indexable, albumUri, titlePropertyName, value);
 		    found_album = true;
 		} else if (strncmp("TCON", p, 4) == 0) {
-            // The Genre is stored as (number)
-            if( value[0] == '(' && value[value.length()-1] == ')' ) {
-                //vHanda: Maybe one should check if all the characters in between are digits
-                int genreIndex = atoi( value.substr( 1, value.length()-1 ).c_str() );
-                indexable.addValue(factory->genreField, genres[ genreIndex ]);
-                found_genre = true;
-            }
+		    genre_number_parser p(value);
+		    if(p) {
+			indexable.addValue(factory->genreField, genres[ p ]);
+			found_genre = true;
+		    } else {
+			// We must not forget that genre could be a string.
+			if (!value.empty()) {
+			    indexable.addValue(factory->genreField, value);
+			    found_genre = true;
+			}
+		    }
 		} else if (strncmp("TLEN", p, 4) == 0) {
 		    indexable.addValue(factory->durationField, value);
 		} else if (strncmp("TEXT", p, 4) == 0) {
@@ -623,7 +684,7 @@ ID3EndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream* 
 	    if (!found_track && !buf[125] && buf[126]) {
 		indexable.addValue(factory->trackNumberField, (int)(buf[126]));
 	    }
-	    if (!found_genre && (unsigned char)(buf[127]) < 148)
+	    if (!found_genre && (unsigned char)(buf[127]) < ID3_NUMBER_OF_GENRES)
 		indexable.addValue(factory->genreField, genres[(uint8_t)buf[127]]);
 	}
     }
