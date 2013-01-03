@@ -2,7 +2,7 @@ project (libstreamanalyzer)
 
 ##### cmake settings #####
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
 
 cmake_policy(VERSION 2.6.0)
 if(POLICY CMP0017)
@@ -38,8 +38,8 @@ option(ENABLE_CLUCENE "enable CLucene support (recommended)" ON)
 option(ENABLE_CLUCENE_NG "enable clucene-ng (version 1+) support (testing)" ON)
 
 # definition of LIB_DESTINATION which is the path where the lib is installed
-set (LIB_SUFFIX "" CACHE STRING "Define suffix of directory name (32/64)" )
-set (LIB_DESTINATION "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}" CACHE STRING "Library directory name" FORCE)
+include(GNUInstallDirs)
+set(LIB_DESTINATION "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 
 # Set up RPATH handling, so the libs are found if they are installed to a non-standard location.
 # By default cmake builds the targets with full RPATH to everything in the build directory,
