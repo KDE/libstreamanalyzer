@@ -127,7 +127,15 @@ install(FILES
 	${libstreamanalyzer_BINARY_DIR}/include/strigi/strigi_thread.h
 	DESTINATION include/strigi
 )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/LibStreamAnalyzerConfig.cmake
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(${libstreamanalyzer_BINARY_DIR}/LibStreamAnalyzerConfigVersion.cmake
+                                 VERSION ${LIBSTREAMANALYZER_VERSION}
+                                 COMPATIBILITY SameMajorVersion
+                                )
+
+install(FILES ${libstreamanalyzer_BINARY_DIR}/LibStreamAnalyzerConfig.cmake
+              ${libstreamanalyzer_BINARY_DIR}/LibStreamAnalyzerConfigVersion.cmake
 	DESTINATION ${LIB_DESTINATION}/libstreamanalyzer)
 # ontologies
 file (GLOB STRIGI_ONTOLOGIES share/strigi/fieldproperties/*.rdfs)
