@@ -14,6 +14,15 @@ include(MacroCheckGccVisibility)
 include(MacroFindOptionalDep)
 enable_testing()
 
+# Used to report found packages
+include(FeatureSummary)
+
+# Used to create config files
+include(CMakePackageConfigHelpers)
+
+# Used to set some generic paths
+include(GNUInstallDirs)
+
 ##### global variables #####
 
 # due to a bug in libxml2, we only get thread support if _REENTRANT is defined
@@ -38,7 +47,6 @@ option(ENABLE_CLUCENE "enable CLucene support (recommended)" ON)
 option(ENABLE_CLUCENE_NG "enable clucene-ng (version 1+) support (testing)" ON)
 
 # definition of LIB_DESTINATION which is the path where the lib is installed
-include(GNUInstallDirs)
 set(LIB_DESTINATION "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 
 # Set up RPATH handling, so the libs are found if they are installed to a non-standard location.
