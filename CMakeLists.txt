@@ -47,8 +47,9 @@ option(ENABLE_CLUCENE "enable CLucene support (recommended)" ON)
 option(ENABLE_CLUCENE_NG "enable clucene-ng (version 1+) support (testing)" ON)
 
 # Paths definitions
-set(LIB_DESTINATION "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+set(LIB_DESTINATION     "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 set(INCLUDE_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+set(DATA_DESTINATION    "${CMAKE_INSTALL_DATAROOTDIR}")
 
 # Set up RPATH handling, so the libs are found if they are installed to a non-standard location.
 # By default cmake builds the targets with full RPATH to everything in the build directory,
@@ -149,7 +150,7 @@ file(GLOB STRIGI_HEADERS include/strigi/*.h)
 install(FILES
         ${STRIGI_HEADERS}
         ${libstreamanalyzer_BINARY_DIR}/include/strigi/strigi_thread.h
-        DESTINATION include/strigi
+        DESTINATION ${INCLUDE_DESTINATION}/strigi
 )
 
 configure_package_config_file(LibStreamanalyzerConfig.cmake.in
@@ -170,7 +171,7 @@ install(FILES ${libstreamanalyzer_BINARY_DIR}/LibStreamAnalyzerConfig.cmake
 # ontologies
 file (GLOB STRIGI_ONTOLOGIES share/strigi/fieldproperties/*.rdfs)
 install(FILES ${STRIGI_ONTOLOGIES}
-        DESTINATION share/strigi/fieldproperties/
+        DESTINATION ${DATA_DESTINATION}/strigi/fieldproperties/
 )
 
 # library
