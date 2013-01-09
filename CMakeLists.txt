@@ -59,7 +59,7 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH  TRUE)
 set(CMAKE_INSTALL_RPATH                ${LIB_DESTINATION} )
 
 if(NOT WIN32 AND NOT CMAKE_SYSTEM MATCHES "SunOS-5*.")
-	add_definitions(-fPIC)
+  add_definitions(-fPIC)
 endif(NOT WIN32 AND NOT CMAKE_SYSTEM MATCHES "SunOS-5*.")
 
 ##### environment inspection #####
@@ -80,9 +80,9 @@ endif()
 
 
 find_package(Threads REQUIRED)
-if (NOT CMAKE_USE_PTHREADS_INIT AND NOT CMAKE_USE_WIN32_THREADS_INIT)
+if(NOT CMAKE_USE_PTHREADS_INIT AND NOT CMAKE_USE_WIN32_THREADS_INIT)
   message(FATAL_ERROR "Strigi needs either pthreads or win32 threads, none was found.")
-endif (NOT CMAKE_USE_PTHREADS_INIT AND NOT CMAKE_USE_WIN32_THREADS_INIT)
+endif()
 
 find_package(LibXml2 REQUIRED)
 find_package(Iconv REQUIRED)
@@ -98,32 +98,31 @@ configure_file(LibStreamAnalyzer.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/LibStreamA
 ##### building and testing #####
 
 configure_file(${libstreamanalyzer_SOURCE_DIR}/strigi_thread.h.cmake
-	${libstreamanalyzer_BINARY_DIR}/include/strigi/strigi_thread.h)
+               ${libstreamanalyzer_BINARY_DIR}/include/strigi/strigi_thread.h)
 
 # every directory needs the headers that will be installed
 include_directories(${LIBSTREAMS_INCLUDE_DIRS}
-	${libstreamanalyzer_SOURCE_DIR}/include
-	${libstreamanalyzer_SOURCE_DIR}/include/strigi
-	${libstreamanalyzer_BINARY_DIR}/include
-	${libstreamanalyzer_BINARY_DIR}/include/strigi
-        ${libstreamanalyzer_SOURCE_DIR}/lib
-	${libstreamanalyzer_BINARY_DIR}/lib
-	${ICONV_INCLUDE_DIR}
-	${LIBSTREAMS_LIBRARY_DIRS}
-  	${EXIV2_INCLUDEDIR}
-	${XINE_INCLUDE_DIR}
-	${FFMPEG_INCLUDE_DIRS}
-	${MAGIC_INCLUDE_DIR}
-	${LIBXML2_INCLUDE_DIR}
+                    ${libstreamanalyzer_SOURCE_DIR}/include
+                    ${libstreamanalyzer_SOURCE_DIR}/include/strigi
+                    ${libstreamanalyzer_BINARY_DIR}/include
+                    ${libstreamanalyzer_BINARY_DIR}/include/strigi
+                    ${libstreamanalyzer_SOURCE_DIR}/lib
+                    ${libstreamanalyzer_BINARY_DIR}/lib
+                    ${ICONV_INCLUDE_DIR}
+                    ${LIBSTREAMS_LIBRARY_DIRS}
+                    ${EXIV2_INCLUDEDIR}
+                    ${XINE_INCLUDE_DIR}
+                    ${FFMPEG_INCLUDE_DIRS}
+                    ${MAGIC_INCLUDE_DIR}
+                    ${LIBXML2_INCLUDE_DIR}
 )
 if(XATTR_FOUND)
-	include_directories(${XATTR_INCLUDE_DIR})
-endif(XATTR_FOUND)
+  include_directories(${XATTR_INCLUDE_DIR})
+endif()
 
 add_subdirectory(lib)
 add_subdirectory(plugins)
 #add_subdirectory(tests)
-
 
 ##### installing #####
 
@@ -131,9 +130,9 @@ add_subdirectory(plugins)
 # headers
 file(GLOB STRIGI_HEADERS include/strigi/*.h)
 install(FILES
-	${STRIGI_HEADERS}
-	${libstreamanalyzer_BINARY_DIR}/include/strigi/strigi_thread.h
-	DESTINATION include/strigi
+        ${STRIGI_HEADERS}
+        ${libstreamanalyzer_BINARY_DIR}/include/strigi/strigi_thread.h
+        DESTINATION include/strigi
 )
 
 include(CMakePackageConfigHelpers)
@@ -144,18 +143,19 @@ write_basic_package_version_file(${libstreamanalyzer_BINARY_DIR}/LibStreamAnalyz
 
 install(FILES ${libstreamanalyzer_BINARY_DIR}/LibStreamAnalyzerConfig.cmake
               ${libstreamanalyzer_BINARY_DIR}/LibStreamAnalyzerConfigVersion.cmake
-	DESTINATION ${LIB_DESTINATION}/libstreamanalyzer)
+        DESTINATION ${LIB_DESTINATION}/libstreamanalyzer)
+
 # ontologies
 file (GLOB STRIGI_ONTOLOGIES share/strigi/fieldproperties/*.rdfs)
-install(FILES
-	${STRIGI_ONTOLOGIES}
-	DESTINATION share/strigi/fieldproperties/
+install(FILES ${STRIGI_ONTOLOGIES}
+        DESTINATION share/strigi/fieldproperties/
 )
+
 # library
 if(NOT WIN32)
-	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/lib/libstreamanalyzer.pc.cmake
-		${CMAKE_CURRENT_BINARY_DIR}/lib/libstreamanalyzer.pc)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/lib/libstreamanalyzer.pc.cmake
+                  ${CMAKE_CURRENT_BINARY_DIR}/lib/libstreamanalyzer.pc)
 
-	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/libstreamanalyzer.pc
-		DESTINATION ${LIB_DESTINATION}/pkgconfig)
-endif(NOT WIN32)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/libstreamanalyzer.pc
+          DESTINATION ${LIB_DESTINATION}/pkgconfig)
+endif()
