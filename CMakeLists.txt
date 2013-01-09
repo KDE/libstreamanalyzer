@@ -79,19 +79,36 @@ else()
 endif()
 
 
-find_package(Threads REQUIRED)
+find_package(Threads)
+set_package_properties(Threads PROPERTIES
+                       DESCRIPTION "The thread library of the system"
+                       TYPE REQUIRED
+                      )
+
 if(NOT CMAKE_USE_PTHREADS_INIT AND NOT CMAKE_USE_WIN32_THREADS_INIT)
   message(FATAL_ERROR "Strigi needs either pthreads or win32 threads, none was found.")
 endif()
 
-find_package(LibXml2 REQUIRED)
-find_package(Iconv REQUIRED)
+find_package(LibXml2)
+set_package_properties(LibXml2 PROPERTIES
+                       URL "http://xmlsoft.org"
+                       TYPE REQUIRED
+                      )
+find_package(Iconv)
+set_package_properties(Iconv PROPERTIES
+                       TYPE REQUIRED
+                      )
+
 
 find_optional_dep(CLucene ENABLE_CLUCENE CLucene_FOUND "CLucene backend")
 find_optional_dep(CLucene1 ENABLE_CLUCENE_NG CLUCENE1_FOUND "CLucene Version 1+ backend")
 find_optional_dep(Exiv2 ENABLE_EXIV2 EXIV2_FOUND "indexing of EXIF/IPTC metadata")
 find_optional_dep(FFmpeg ENABLE_FFMPEG FFMPEG_FOUND "indexing FFMPEG" COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE)
 find_package(XAttr)
+
+feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
+
+
 include(ConfigureChecks.cmake)
 configure_file(LibStreamAnalyzer.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/LibStreamAnalyzerConfig.cmake @ONLY )
 
