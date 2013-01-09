@@ -46,8 +46,9 @@ set(CLUCENE_MIN_VERSION "0.9.21")
 option(ENABLE_CLUCENE "enable CLucene support (recommended)" ON)
 option(ENABLE_CLUCENE_NG "enable clucene-ng (version 1+) support (testing)" ON)
 
-# definition of LIB_DESTINATION which is the path where the lib is installed
+# Paths definitions
 set(LIB_DESTINATION "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+set(INCLUDE_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
 # Set up RPATH handling, so the libs are found if they are installed to a non-standard location.
 # By default cmake builds the targets with full RPATH to everything in the build directory,
@@ -110,7 +111,6 @@ feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
 
 include(ConfigureChecks.cmake)
-configure_file(LibStreamAnalyzer.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/LibStreamAnalyzerConfig.cmake @ONLY )
 
 ##### building and testing #####
 
@@ -152,7 +152,12 @@ install(FILES
         DESTINATION include/strigi
 )
 
-include(CMakePackageConfigHelpers)
+configure_package_config_file(LibStreamanalyzerConfig.cmake.in
+                              ${CMAKE_CURRENT_BINARY_DIR}/LibStreamanalyzerConfig.cmake
+                              INSTALL_DESTINATION ${LIB_DESTINATION}/cmake/LibStreamanalyzerConfig
+                              PATH_VARS INCLUDE_DESTINATION LIB_DESTINATION
+)
+
 write_basic_package_version_file(${libstreamanalyzer_BINARY_DIR}/LibStreamAnalyzerConfigVersion.cmake
                                  VERSION ${LIBSTREAMANALYZER_VERSION}
                                  COMPATIBILITY SameMajorVersion
