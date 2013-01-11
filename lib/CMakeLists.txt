@@ -63,11 +63,11 @@ if(MSVC)
 		stgdirent.cpp
 		stgdirent.h
 	)
-else(MSVC)
+else()
 	list(APPEND streamanalyzer_SRCS
 		endanalyzers/helperendanalyzer.cpp
 	)
-endif(MSVC)
+endif()
 
 add_library(streamanalyzerstatic STATIC ${streamanalyzer_SRCS})
 

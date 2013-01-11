@@ -62,7 +62,7 @@ set(CMAKE_INSTALL_RPATH                ${LIB_DESTINATION} )
 
 if(NOT WIN32 AND NOT CMAKE_SYSTEM MATCHES "SunOS-5*.")
   add_definitions(-fPIC)
-endif(NOT WIN32 AND NOT CMAKE_SYSTEM MATCHES "SunOS-5*.")
+endif()
 
 ##### environment inspection #####
 
