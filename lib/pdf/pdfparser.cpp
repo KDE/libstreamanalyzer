@@ -599,8 +599,12 @@ PdfParser::DefaultStreamHandler::handle(Strigi::StreamBase<char>* s) {
     if (file == 0) {
         return Error;
     }
+    size_t w;
     do {
-        fwrite(c, 1, n, file);
+        w = fwrite(c, 1, n, file);
+        if (w != n) {
+            return Error;
+        }
         n = s->read(c, 1, 0);
     } while (n > 0);
     fclose(file);
