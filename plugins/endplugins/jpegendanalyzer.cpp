@@ -322,6 +322,11 @@ JpegEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
                 ar.addValue(factory->exifFields.find("Exif.Image.DateTime")->second, uint32_t(mktime(&date)));
             }
         }
+        else if (i->key() == "Exif.Photo.ISOSpeedRatings") {
+            stringstream st;
+            st << i->toLong();
+            ar.addValue(factory->exifFields.find("Exif.Photo.ISOSpeedRatings")->second, st.str());
+        }
         else if (i->key() != "Exif.Photo.PixelXDimension" && i->key() != "Exif.Photo.PixelYDimension") {
             map<string,const RegisteredField*>::const_iterator f
                     = factory->exifFields.find(i->key());
