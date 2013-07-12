@@ -28,7 +28,7 @@ class LzmaEndAnalyzer : public Strigi::StreamEndAnalyzer {
 private:
     const LzmaEndAnalyzerFactory* factory;
 public:
-    LzmaEndAnalyzer(const LzmaEndAnalyzerFactory* f)
+    explicit LzmaEndAnalyzer(const LzmaEndAnalyzerFactory* f)
         :factory(f) {}
 
     bool checkHeader(const char* header, int32_t headersize) const;

@@ -342,7 +342,7 @@ ID3EndAnalyzer::checkHeader(const char* header, int32_t headersize) const {
   const unsigned char* usbuf = (const unsigned char*)header;
   int32_t i;
 
-  for(i=0; (header[i] == '\0') && (i<headersize); i++);
+  for(i=0; (header[i] == '\0') && (i<headersize); ++i);
   return (headersize>=6+i)
 	  && (
 	    (strncmp("ID3", header+i, 3) == 0	// check that it's ID3
@@ -411,7 +411,7 @@ class genre_number_parser {
         parse_string(genre);
     }
     /**
-     * wether or not parsing was successful
+     * whether or not parsing was successful
      */
     operator bool() {
         return success;
@@ -480,7 +480,7 @@ ID3EndAnalyzer::analyze(Strigi::AnalysisResult& indexable, Strigi::InputStream* 
 	    string deunsyncbuf;
 	    if (unsync) {
 	      deunsyncbuf.reserve(size-1);
-	      for(int32_t i = 0; i<size-1; i++)
+	      for(int32_t i = 0; i<size-1; ++i)
 		if ( (i==0) || (p[11+i]!=0) || (p[10+i]!=0xff) )
 		  deunsyncbuf.push_back(p[11+i]);
 	      decoded_value = deunsyncbuf.c_str();

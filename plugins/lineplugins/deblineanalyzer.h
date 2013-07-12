@@ -36,7 +36,7 @@ private:
     unsigned int finished;
     Strigi::AnalysisResult* result;
 public:
-    DebLineAnalyzer(const DebLineAnalyzerFactory* f) : factory(f) {}
+    explicit DebLineAnalyzer(const DebLineAnalyzerFactory* f) : factory(f) {}
 };
 
 class DebLineAnalyzerFactory : public Strigi::StreamLineAnalyzerFactory {

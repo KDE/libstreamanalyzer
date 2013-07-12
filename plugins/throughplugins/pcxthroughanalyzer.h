@@ -30,7 +30,7 @@ private:
     Strigi::AnalysisResult* indexable;
     const PcxThroughAnalyzerFactory* factory;
 public:
-    PcxThroughAnalyzer(const PcxThroughAnalyzerFactory* f) :factory(f) {}
+    explicit PcxThroughAnalyzer(const PcxThroughAnalyzerFactory* f) :factory(f) {}
     ~PcxThroughAnalyzer() {}
     void setIndexable(Strigi::AnalysisResult*);
     Strigi::InputStream *connectInputStream(Strigi::InputStream *in);

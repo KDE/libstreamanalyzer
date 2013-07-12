@@ -310,11 +310,11 @@ CLuceneIndexReader::Private::createSingleFieldQuery(const string& field,
           q = _CLNEW TermQuery(t);
           break;
     case Strigi::Query::Contains:
-          t = createWildCardTerm(fieldname.c_str(), "*" + val + "*");
+          t = createWildCardTerm(fieldname.c_str(), '*' + val + '*');
           q = _CLNEW WildcardQuery(t);
           break;
     case Strigi::Query::StartsWith:
-          t = createWildCardTerm(fieldname.c_str(), val + "*");
+          t = createWildCardTerm(fieldname.c_str(), val + '*');
           q = _CLNEW WildcardQuery(t);
           break;
     case Strigi::Query::Equals:

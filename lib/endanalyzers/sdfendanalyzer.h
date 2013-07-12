@@ -29,7 +29,7 @@ class SdfEndAnalyzer : public Strigi::StreamEndAnalyzer {
 private:
     const SdfEndAnalyzerFactory* factory;
 public:
-    SdfEndAnalyzer(const SdfEndAnalyzerFactory* f) :factory(f) {}
+    explicit SdfEndAnalyzer(const SdfEndAnalyzerFactory* f) :factory(f) {}
     bool checkHeader(const char* header, int32_t headersize) const;
     signed char analyze(Strigi::AnalysisResult& idx, Strigi::InputStream* in);
     const char* name() const { return "SdfEndAnalyzer"; }

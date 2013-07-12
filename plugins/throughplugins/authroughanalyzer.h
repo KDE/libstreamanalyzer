@@ -36,7 +36,7 @@ private:
     Strigi::AnalysisResult* analysisResult;
     const AuThroughAnalyzerFactory* factory;
 public:
-    AuThroughAnalyzer(const AuThroughAnalyzerFactory* f) :factory(f) {}
+    explicit AuThroughAnalyzer(const AuThroughAnalyzerFactory* f) :factory(f) {}
     ~AuThroughAnalyzer() {}
     void setIndexable(Strigi::AnalysisResult* i);
     Strigi::InputStream *connectInputStream(Strigi::InputStream *in);

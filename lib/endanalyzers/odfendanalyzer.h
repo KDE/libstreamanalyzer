@@ -36,7 +36,7 @@ public:
     Strigi::OdfMetaHelperAnalyzer metaHelper;
     Strigi::OdfContentHelperAnalyzer contentHelper;
     
-    OdfEndAnalyzer(const OdfEndAnalyzerFactory* f) :factory(f){};
+    explicit OdfEndAnalyzer(const OdfEndAnalyzerFactory* f) :factory(f){};
     bool checkHeader(const char* header, int32_t headersize) const;
     signed char analyze(Strigi::AnalysisResult& idx, Strigi::InputStream* in);
     const char* name() const { return "OdfEndAnalyzer"; }

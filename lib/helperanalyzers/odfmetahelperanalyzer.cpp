@@ -27,7 +27,6 @@
 #include <string>
 #include <iostream>
 
-#include <strigi/analysisresult.h>
 #include <strigi/fieldtypes.h>
 #include "../rdfnamespaces.h"
 

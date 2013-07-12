@@ -229,7 +229,7 @@ CLuceneIndexWriter::deleteEntry(const string& entry, lucene::index::IndexWriter*
 }
 {
     // delete all deeper nested files
-    wstring v = utf8toucs2(entry+"/");
+    wstring v = utf8toucs2(entry + '/');
     Term* t(_CLNEW Term(parentlocation(), v.c_str()));
     PrefixFilter* filter = _CLNEW PrefixFilter(t);
     BitSet* b = filter->bits(reader);
@@ -248,7 +248,7 @@ void
 CLuceneIndexWriter::deleteAllEntries() {
     lucene::index::IndexReader* reader = manager->checkReader();
     if ( reader != NULL ){
-      for ( int32_t i=0;i<reader->maxDoc();i++ ){
+      for ( int32_t i=0;i<reader->maxDoc(); ++i) {
         reader->deleteDocument(i);
       }
       reader->flush();

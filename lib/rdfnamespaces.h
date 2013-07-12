@@ -18,8 +18,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef RDFNAMESAPCES
-#define RDFNAMESPACES
+#ifndef RDFNAMESPACES_H
+#define RDFNAMESPACES_H
 
 // This is a list of the most often encountered rdf namespaces used by analyzers
 // For internal use ONLY and should not be installed

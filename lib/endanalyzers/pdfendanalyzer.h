@@ -40,7 +40,7 @@ private:
     Strigi::StreamStatus handle(Strigi::InputStream* s);
     Strigi::StreamStatus handle(const std::string& s);
 public:
-    PdfEndAnalyzer(const PdfEndAnalyzerFactory* f);
+    explicit PdfEndAnalyzer(const PdfEndAnalyzerFactory* f);
 };
 
 class PdfEndAnalyzerFactory : public Strigi::StreamEndAnalyzerFactory {

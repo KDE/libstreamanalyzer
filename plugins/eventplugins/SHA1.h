@@ -115,10 +115,7 @@
 #define SHA1_WIPE_VARIABLES
 #endif
 
-#if defined(SHA1_HAS_TCHAR)
-#include <tchar.h>
-#else
-#ifdef _MSC_VER
+#if defined(SHA1_HAS_TCHAR) || defined(_MSC_VER)
 #include <tchar.h>
 #else
 #ifndef TCHAR
@@ -134,7 +131,6 @@
 #define _tcscpy strcpy
 #define _tcscat strcat
 #define _sntprintf snprintf
-#endif
 #endif
 #endif
 

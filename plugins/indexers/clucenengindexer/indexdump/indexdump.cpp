@@ -48,9 +48,8 @@ t2a(const TCHAR* t) {
 void
 docdump(Document* doc) {
     Document::FieldsType fields = doc->getFields();
-    for ( Document::FieldsType::iterator itr = fields.begin();
-          itr != fields.end();
-          itr++ ){
+    for (Document::FieldsType::iterator itr = fields.begin();
+             itr != fields.end(); ++itr) {
         TCHAR* s = (*itr)->toString();
         printf("%s\n", t2a(s).c_str());
         _CLDELETE_CARRAY(s);

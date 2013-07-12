@@ -40,7 +40,7 @@ public:
 
 class OdfMimeTypeLineAnalyzer : public Strigi::StreamLineAnalyzer {
 public:
-    OdfMimeTypeLineAnalyzer(const OdfMimeTypeLineAnalyzerFactory *factory);
+    explicit OdfMimeTypeLineAnalyzer(const OdfMimeTypeLineAnalyzerFactory *factory);
 
     const char* name() const {
         return "OdfMimeTypeLineAnalyzer";

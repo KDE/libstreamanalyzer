@@ -39,7 +39,7 @@ private:
     void handleData(const char* data, uint32_t length);
     bool isReadyWithStream();
 public:
-    MimeEventAnalyzer(const MimeEventAnalyzerFactory*);
+    explicit MimeEventAnalyzer(const MimeEventAnalyzerFactory*);
     ~MimeEventAnalyzer();
 };
 

@@ -40,13 +40,13 @@ private:
     VariantPrivate* const p;
 public:
     Variant();
-    Variant(bool v);
-    Variant(int32_t v);
-    Variant(uint32_t v);
-    Variant(const char* v);
-    Variant(const std::string& v);
-    Variant(const std::vector<std::string>& v);
-    Variant(const std::vector<std::vector<std::string> >& v);
+    explicit Variant(bool v);
+    explicit Variant(int32_t v);
+    explicit Variant(uint32_t v);
+    explicit Variant(const char* v);
+    explicit Variant(const std::string& v);
+    explicit Variant(const std::vector<std::string>& v);
+    explicit Variant(const std::vector<std::vector<std::string> >& v);
     Variant(const Variant& v);
     ~Variant();
     Type type() const;

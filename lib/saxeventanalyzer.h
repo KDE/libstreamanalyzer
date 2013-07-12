@@ -40,7 +40,7 @@ private:
     void handleData(const char* data, uint32_t length);
     bool isReadyWithStream();
 public:
-    SaxEventAnalyzer(std::vector<StreamSaxAnalyzer*>&s);
+    explicit SaxEventAnalyzer(std::vector<StreamSaxAnalyzer*>&s);
     ~SaxEventAnalyzer();
 };
 

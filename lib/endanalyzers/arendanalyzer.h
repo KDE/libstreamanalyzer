@@ -28,7 +28,7 @@ class ArEndAnalyzer : public Strigi::StreamEndAnalyzer {
 private:
     const ArEndAnalyzerFactory* factory;
 public:
-    ArEndAnalyzer(const ArEndAnalyzerFactory* f)
+    explicit ArEndAnalyzer(const ArEndAnalyzerFactory* f)
         :factory(f) {}
 
     bool checkHeader(const char* header, int32_t headersize) const;

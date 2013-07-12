@@ -28,7 +28,7 @@ class TarEndAnalyzer : public Strigi::StreamEndAnalyzer {
 private:
     const TarEndAnalyzerFactory* factory;
 public:
-    TarEndAnalyzer(const TarEndAnalyzerFactory* f)
+    explicit TarEndAnalyzer(const TarEndAnalyzerFactory* f)
         :factory(f) {}
 
     bool checkHeader(const char* header, int32_t headersize) const;

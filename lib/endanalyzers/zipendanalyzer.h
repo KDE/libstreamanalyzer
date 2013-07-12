@@ -28,7 +28,7 @@ class ZipEndAnalyzer : public Strigi::StreamEndAnalyzer {
 public:
     const ZipEndAnalyzerFactory* const factory;
 
-    ZipEndAnalyzer(const ZipEndAnalyzerFactory* f) :factory(f) {}
+    explicit ZipEndAnalyzer(const ZipEndAnalyzerFactory* f) :factory(f) {}
     bool checkHeader(const char* header, int32_t headersize) const;
     signed char analyze(Strigi::AnalysisResult& idx, Strigi::InputStream* in);
     const char* name() const { return "ZipEndAnalyzer"; }

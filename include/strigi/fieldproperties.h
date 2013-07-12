@@ -39,8 +39,8 @@ public:
     };
     FieldProperties();
     FieldProperties(const FieldProperties&);
-    FieldProperties(const Private&);
-    FieldProperties(const std::string& key);
+    explicit FieldProperties(const Private&);
+    explicit FieldProperties(const std::string& key);
     ~FieldProperties();
     const FieldProperties& operator=(const FieldProperties&);
     /**

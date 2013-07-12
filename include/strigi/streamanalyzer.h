@@ -50,7 +50,7 @@ private:
     StreamAnalyzerPrivate* const p;
 
 public:
-    StreamAnalyzer(AnalyzerConfiguration& c);
+    explicit StreamAnalyzer(AnalyzerConfiguration& c);
     ~StreamAnalyzer();
     void setIndexWriter(IndexWriter& writer);
     signed char indexFile(const char *filepath);

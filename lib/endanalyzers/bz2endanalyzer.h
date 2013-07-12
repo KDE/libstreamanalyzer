@@ -28,7 +28,7 @@ class Bz2EndAnalyzer : public Strigi::StreamEndAnalyzer {
 private:
     const Bz2EndAnalyzerFactory* factory;
 public:
-    Bz2EndAnalyzer(const Bz2EndAnalyzerFactory* f)
+    explicit Bz2EndAnalyzer(const Bz2EndAnalyzerFactory* f)
         :factory(f) {}
 
     bool checkHeader(const char* header, int32_t headersize) const;

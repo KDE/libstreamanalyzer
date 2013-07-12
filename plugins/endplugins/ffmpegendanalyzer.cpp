@@ -377,7 +377,7 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
     ar.addValue(factory->typeProperty, NFO "Video");
   }
 
-  for(uint32_t i=0; i<fc->nb_streams; i++) {
+  for(uint32_t i=0; i<fc->nb_streams; ++i) {
     const AVStream &stream = *fc->streams[i];
     const AVCodecContext &codec = *stream.codec;
     
@@ -394,9 +394,9 @@ FFMPEGEndAnalyzer::analyze(AnalysisResult& ar, ::InputStream* in) {
       }
 
 #if (LIBAVUTIL_VERSION_MAJOR < 51)
-      //FIXME we must stop using the deprecated fuction av_metadata_get and use
+      //FIXME we must stop using the deprecated function av_metadata_get and use
       // av_dict_get once we are able to detect the version of FFMpeg being used
-      // using version macros. same goes for all occurences of this function.
+      // using version macros. same goes for all occurrences of this function.
       AVMetadataTag *entry = av_metadata_get(stream.metadata, "language", NULL, 0);
 #else
       AVDictionaryEntry *entry = av_dict_get(stream.metadata, "language", NULL, 0);

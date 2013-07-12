@@ -39,8 +39,8 @@ public:
     };
     ClassProperties();
     ClassProperties(const ClassProperties&);
-    ClassProperties(const Private&);
-    ClassProperties(const std::string& key);
+    explicit ClassProperties(const Private&);
+    explicit ClassProperties(const std::string& key);
     ~ClassProperties();
     const ClassProperties& operator=(const ClassProperties&);
     bool valid() const;

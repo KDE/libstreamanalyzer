@@ -33,7 +33,7 @@ class FlacEndAnalyzer : public Strigi::StreamEndAnalyzer {
 private:
     const FlacEndAnalyzerFactory* factory;
 public:
-    FlacEndAnalyzer(const FlacEndAnalyzerFactory* f) :factory(f) {}
+    explicit FlacEndAnalyzer(const FlacEndAnalyzerFactory* f) :factory(f) {}
     bool checkHeader(const char* header, int32_t headersize) const;
     signed char analyze(Strigi::AnalysisResult& idx, Strigi::InputStream* in);
     const char* name() const { return "FlacEndAnalyzer"; }

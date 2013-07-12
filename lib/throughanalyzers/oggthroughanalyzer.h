@@ -35,7 +35,7 @@ private:
     Strigi::AnalysisResult* indexable;
     const OggThroughAnalyzerFactory* factory;
 public:
-    OggThroughAnalyzer(const OggThroughAnalyzerFactory* f) :factory(f) {}
+    explicit OggThroughAnalyzer(const OggThroughAnalyzerFactory* f) :factory(f) {}
     ~OggThroughAnalyzer() {}
     void setIndexable(Strigi::AnalysisResult*);
     Strigi::InputStream *connectInputStream(Strigi::InputStream *in);

@@ -28,7 +28,7 @@ class GZipEndAnalyzer : public Strigi::StreamEndAnalyzer {
 private:
     const GZipEndAnalyzerFactory* factory;
 public:
-    GZipEndAnalyzer(const GZipEndAnalyzerFactory* f)
+    explicit GZipEndAnalyzer(const GZipEndAnalyzerFactory* f)
         :factory(f) {}
 
     bool checkHeader(const char* header, int32_t headersize) const;

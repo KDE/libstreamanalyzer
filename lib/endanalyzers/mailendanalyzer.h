@@ -28,7 +28,7 @@ class MailEndAnalyzer : public Strigi::StreamEndAnalyzer {
 private:
     const MailEndAnalyzerFactory* factory;
 public:
-    MailEndAnalyzer(const MailEndAnalyzerFactory* f) :factory(f) {}
+    explicit MailEndAnalyzer(const MailEndAnalyzerFactory* f) :factory(f) {}
     bool checkHeader(const char* header, int32_t headersize) const;
     signed char analyze(Strigi::AnalysisResult& idx, Strigi::InputStream* in);
     const char* name() const { return "MailEndAnalyzer"; }

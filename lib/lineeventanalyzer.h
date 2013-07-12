@@ -57,7 +57,7 @@ private:
     void emitData(const char* data, uint32_t length);
     void initEncoding(std::string encoding);
 public:
-    LineEventAnalyzer(std::vector<StreamLineAnalyzer*>&s);
+    explicit LineEventAnalyzer(std::vector<StreamLineAnalyzer*>&s);
     ~LineEventAnalyzer();
 };
 

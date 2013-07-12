@@ -270,7 +270,7 @@ CLuceneIndexWriter::deleteEntry(const string& entry,
 }
 {
     // delete all deeper nested files
-    wstring v = utf8toucs2(entry+"/");
+    wstring v = utf8toucs2(entry + '/');
     Term* t = _CLNEW Term(parentlocation(), v.c_str());
     PrefixFilter* filter = _CLNEW PrefixFilter(t);
     BitSet* b = filter->bits(reader);
@@ -372,58 +372,6 @@ CLuceneIndexWriter::cleanUp() {
     if (!locked) {
         return;
     }
-    /*
-    //this is a hack and will not work with new versions of the index..
-        //furthermore, segmentinfos is a private class.
-    lucene::index::SegmentInfos infos;
-    try {
-        //Have SegmentInfos read the segments file in directory
-        infos.read(directory);
-    } catch(...) {
-        lock->release();
-        return; //todo: this may suggest an error...
-    }
-    lock->release();
-
-    int i;
-    set<string> segments;
-    for (i = 0; i < infos.size(); i++) {
-            lucene::index::SegmentInfo* info = infos.info(i);
-            segments.insert(info->name);
-    }
-
-    char** files = directory->list();
-    char tmp[CL_MAX_PATH];
-    for (i = 0; files[i] != NULL; ++i) {
-        char* file = files[i];
-
-        int fileLength = strlen(file);
-        if ( fileLength < 6 ) {
-            continue;
-        }
-
-        if (strncmp(file,"segments", 8) == 0
-                || strncmp(file, "deletable", 9) == 0) {
-            continue;
-        }
-        if (!isLuceneFile(file)) {
-            continue;
-        }
-
-        strcpy(tmp, file);
-        tmp[fileLength-4] = '\0';
-
-        if (segments.find(tmp) != segments.end()) {
-            continue;
-        }
-
-        directory->deleteFile(file, false);
-    }
-    for (i = 0; files[i] != NULL; i++) {
-        _CLDELETE_CaARRAY(files[i]);
-    }
-    _CLDELETE_ARRAY(files);
-    */
 }
 
 void

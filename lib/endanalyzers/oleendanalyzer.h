@@ -64,7 +64,7 @@ private:
     std::string getStreamString(Strigi::InputStream*) const;
     bool tryFIB(Strigi::AnalysisResult& ar, Strigi::InputStream* in);
 public:
-    OleEndAnalyzer(const OleEndAnalyzerFactory* const f) :factory(f) {}
+    explicit OleEndAnalyzer(const OleEndAnalyzerFactory* const f) :factory(f) {}
     bool checkHeader(const char* header, int32_t headersize) const;
     bool tryPropertyStream(Strigi::AnalysisResult& idx, Strigi::InputStream* s);
     signed char analyze(Strigi::AnalysisResult& idx, Strigi::InputStream* in);

@@ -42,7 +42,7 @@ private:
     std::string constructAbsolutePath(const std::string& relative) const;
 
 public:
-    M3uLineAnalyzer(const M3uLineAnalyzerFactory* f) : factory(f) {}
+    explicit M3uLineAnalyzer(const M3uLineAnalyzerFactory* f) : factory(f) {}
     ~M3uLineAnalyzer() {}
 
     const char* name() const { 

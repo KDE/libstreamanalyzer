@@ -28,7 +28,7 @@ class RpmEndAnalyzer : public Strigi::StreamEndAnalyzer {
 private:
     const RpmEndAnalyzerFactory* factory;
 public:
-    RpmEndAnalyzer(const RpmEndAnalyzerFactory* f)
+    explicit RpmEndAnalyzer(const RpmEndAnalyzerFactory* f)
         :factory(f) {}
 
     bool checkHeader(const char* header, int32_t headersize) const;

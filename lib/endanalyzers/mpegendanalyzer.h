@@ -58,7 +58,7 @@ private:
 
 
 public:
-    MpegEndAnalyzer(const MpegEndAnalyzerFactory* f) :factory(f)
+    explicit MpegEndAnalyzer(const MpegEndAnalyzerFactory* f) :factory(f)
     {
         this->frame_rate_table[0] = 0.0;   /* Pad */
         //Official frame rates

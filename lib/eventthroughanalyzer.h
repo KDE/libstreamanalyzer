@@ -50,7 +50,7 @@ private:
     void handleEnd();
     const char* name() const { return "EventThroughAnalyzer"; }
 public:
-    EventThroughAnalyzer(std::vector<StreamEventAnalyzer*>& e)
+    explicit EventThroughAnalyzer(std::vector<StreamEventAnalyzer*>& e)
             : event(e), datastream(0), result(0), ready(true){}
     ~EventThroughAnalyzer();
 };

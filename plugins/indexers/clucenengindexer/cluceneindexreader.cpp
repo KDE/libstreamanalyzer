@@ -476,8 +476,8 @@ CLuceneIndexReader::getDocuments(const std::vector<std::string>& fullFields,
         doc.resize(fullFields.size());
 
         const Document::FieldsType& fields = *d.getFields();
-        for ( Document::FieldsType::const_iterator itr = fields.begin();
-              itr != fields.end(); itr++ ) {
+        for (Document::FieldsType::const_iterator itr = fields.begin();
+             itr != fields.end(); ++itr) {
             Field* field = *itr;
             string name(wchartoutf8(field->name()));
             for (uint j = 0; j < fullFields.size(); ++j) {
@@ -546,8 +546,8 @@ CLuceneIndexReader::getHits(const Strigi::Query& q,
         doc.resize(fields.size());
 
         const Document::FieldsType fields = *d->getFields();
-        for ( Document::FieldsType::const_iterator itr = fields.begin();
-              itr != fields.end(); itr++ ) {
+        for (Document::FieldsType::const_iterator itr = fields.begin();
+                 itr != fields.end(); ++itr) {
             Field* field = *itr;
 
             string name(wchartoutf8(field->name()));

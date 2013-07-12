@@ -42,7 +42,7 @@ private:
     signed char addMetaData(const std::string& key, Strigi::AnalysisResult& as,
         Strigi::InputStream* in);
 public:
-    PngEndAnalyzer(const PngEndAnalyzerFactory* f);
+    explicit PngEndAnalyzer(const PngEndAnalyzerFactory* f);
 };
 
 class PngEndAnalyzerFactory : public Strigi::StreamEndAnalyzerFactory {

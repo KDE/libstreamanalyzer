@@ -291,30 +291,30 @@ FieldPropertiesDb::Private::addEssentialProperties() {
 
     props.typeuri = FieldRegister::datetimeType;
     props.uri = FieldRegister::mtimeFieldName;
-    properties[FieldRegister::mtimeFieldName] = props;
+    properties[FieldRegister::mtimeFieldName] = FieldProperties(props);
 
     props.typeuri = FieldRegister::integerType;
     props.uri = FieldRegister::sizeFieldName;
-    properties[FieldRegister::sizeFieldName] = props;
+    properties[FieldRegister::sizeFieldName] = FieldProperties(props);
 
     props.uri = FieldRegister::embeddepthFieldName;
-    properties[FieldRegister::embeddepthFieldName] = props;
+    properties[FieldRegister::embeddepthFieldName] = FieldProperties(props);
 
     props.typeuri = FieldRegister::stringType;
     props.uri = FieldRegister::pathFieldName;
     props.tokenized = false; // should not be tokenized: needed for retrieval 
-    properties[FieldRegister::pathFieldName] = props;
+    properties[FieldRegister::pathFieldName] = FieldProperties(props);
 
     props.uri = FieldRegister::filenameFieldName;
     props.tokenized = true;
-    properties[FieldRegister::filenameFieldName] = props;
+    properties[FieldRegister::filenameFieldName] = FieldProperties(props);
 
     props.uri = FieldRegister::mimetypeFieldName;
-    properties[FieldRegister::mimetypeFieldName] = props;
+    properties[FieldRegister::mimetypeFieldName] = FieldProperties(props);
 
     props.uri = FieldRegister::parentLocationFieldName;
     props.tokenized = false; // should not be tokenized: needed for retrieval
-    properties[FieldRegister::parentLocationFieldName] = props;
+    properties[FieldRegister::parentLocationFieldName] = FieldProperties(props);
 }
 void
 FieldPropertiesDb::Private::loadProperties(const string& dir) {
@@ -751,7 +751,7 @@ FieldPropertiesDb::Private::endElementNsSAX2Func(void *ctx,
 void
 FieldPropertiesDb::Private::storeProperties(FieldProperties::Private& p) {
     if (p.uri.size()) {
-        properties[p.uri] = p;
+        properties[p.uri] = FieldProperties(p);
     }
     p.clear();
 }
@@ -773,14 +773,14 @@ FieldPropertiesDb::addField(const std::string& key, const std::string& type,
     if (parent.size()) {
         props.parentUris.push_back(parent);
     }
-    p->properties[key] = props;
+    p->properties[key] = FieldProperties(props);
 }
 void
 FieldPropertiesDb::addField(const std::string& key) {
     FieldProperties::Private props;
     props.uri = key;
     props.typeuri = FieldRegister::stringType;
-    p->properties[key] = props;
+    p->properties[key] = FieldProperties(props);
 }
 void
 FieldProperties::Private::clear() {

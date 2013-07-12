@@ -69,7 +69,7 @@ private:
      * @param fieldname a (unique) name for what this field represents
      *   the same name should be used in .fieldproperties files in [] brackets
      */
-    RegisteredField(const std::string& key);
+    explicit RegisteredField(const std::string& key);
 public:
     /**
      * @brief Get the key for this field.
@@ -101,7 +101,7 @@ public:
      * primitive type, an array or an object of some
      * description.
      *
-     * It is up the the caller to keep track of the type of
+     * It is up the caller to keep track of the type of
      * the data that is pointed to.  The RegisteredField does
      * not take ownership of the data, and it the caller's
      * responsibility to ensure that any data allocated with

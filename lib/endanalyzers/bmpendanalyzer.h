@@ -28,7 +28,7 @@ class BmpEndAnalyzer : public Strigi::StreamEndAnalyzer {
 private:
     const BmpEndAnalyzerFactory* factory;
 public:
-    BmpEndAnalyzer(const BmpEndAnalyzerFactory* f) :factory(f) {}
+    explicit BmpEndAnalyzer(const BmpEndAnalyzerFactory* f) :factory(f) {}
     bool checkHeader(const char* header, int32_t headersize) const;
     signed char analyze(Strigi::AnalysisResult& idx, Strigi::InputStream* in);
     const char* name() const { return "BmpEndAnalyzer"; }

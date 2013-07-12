@@ -50,7 +50,7 @@ private:
     class Private;
     Private* p;
 public:
-    FileLister(const Strigi::AnalyzerConfiguration* ic=0);
+    explicit FileLister(const Strigi::AnalyzerConfiguration* ic=0);
     ~FileLister();
 
     void startListing(const std::string& dir);
@@ -76,7 +76,7 @@ private:
     class Private;
     Private* p;
 public:
-    DirLister(const Strigi::AnalyzerConfiguration* ic=0);
+    explicit DirLister(const Strigi::AnalyzerConfiguration* ic=0);
     ~DirLister();
 
     void startListing(const std::string& dir);
