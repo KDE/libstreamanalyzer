@@ -56,22 +56,22 @@ public:
     signed char analyze(AnalysisResult& idx, ::InputStream* in);
 };
 
-STRIGI_MUTEX_DEFINE(mutex);
+STRIGI_MUTEX_DEFINE(g_mutex);
 
 static int
 lockmgr(void **mtx, enum AVLockOp op) {
   // pre-allocating a single mutex is the only way to get it to work without changing strigi_thread.h
-  assert( (*mtx == &mutex) || (op == AV_LOCK_CREATE) );
+  assert( (*mtx == &g_mutex) || (op == AV_LOCK_CREATE) );
   switch(op) {
   case AV_LOCK_CREATE:
-    *mtx = &mutex;
-    return !!STRIGI_MUTEX_INIT(&mutex);
+    *mtx = &g_mutex;
+    return !!STRIGI_MUTEX_INIT(&g_mutex);
   case AV_LOCK_OBTAIN:
-    return !!STRIGI_MUTEX_LOCK(&mutex);
+    return !!STRIGI_MUTEX_LOCK(&g_mutex);
   case AV_LOCK_RELEASE:
-    return !!STRIGI_MUTEX_UNLOCK(&mutex);
+    return !!STRIGI_MUTEX_UNLOCK(&g_mutex);
   case AV_LOCK_DESTROY:
-    STRIGI_MUTEX_DESTROY(&mutex);
+    STRIGI_MUTEX_DESTROY(&g_mutex);
     return 0;
   }
   return 1;
