@@ -57,8 +57,13 @@ set(DATA_DESTINATION    "${CMAKE_INSTALL_FULL_DATAROOTDIR}")
 # These two options below make it set the RPATH of the installed targets to all
 # RPATH directories outside the current CMAKE_BINARY_DIR and also the library
 # install directory. Alex
+list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${LIB_DESTINATION}" _isSystemPlatformLibDir)
+list(FIND CMAKE_C_IMPLICIT_LINK_DIRECTORIES "${LIB_DESTINATION}" _isSystemCLibDir)
+list(FIND CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "${LIB_DESTINATION}" _isSystemCxxLibDir)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH  TRUE)
+if("${_isSystemPlatformLibDir}" STREQUAL "-1" AND "${_isSystemCLibDir}" STREQUAL "-1" AND "${_isSystemCxxLibDir}" STREQUAL "-1")
 set(CMAKE_INSTALL_RPATH                ${LIB_DESTINATION} )
+endif()
 
 if(NOT WIN32 AND NOT CMAKE_SYSTEM MATCHES "SunOS-5*.")
   add_definitions(-fPIC)
